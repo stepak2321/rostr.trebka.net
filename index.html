@@ -43,6 +43,8 @@ header{display:flex;align-items:center;gap:24px;padding:20px 0}
 nav{margin-left:auto;display:flex;gap:22px;font-size:15px}
 nav a{text-decoration:none;color:var(--muted)}
 nav a:hover{color:var(--ink)}
+nav a.nav-dl{background:var(--accent);color:var(--accent-ink);font-weight:700;padding:8px 16px;border-radius:10px}
+nav a.nav-dl:hover{color:var(--accent-ink);filter:brightness(1.08)}
 
 .btn{appearance:none;border:0;cursor:pointer;font:700 16px var(--body);padding:14px 26px;border-radius:12px;background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;gap:10px}
 .btn:hover{filter:brightness(1.08)}
@@ -111,7 +113,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 40px;font-size:14px;color
 footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-between}
 
 @media (max-width:860px){
-  nav{display:none}
+  nav a:not(.nav-dl){display:none}
   header{justify-content:space-between}
   .hero,.split,.ov{grid-template-columns:minmax(0,1fr);gap:36px}
   .hero{padding:32px 0 60px}
@@ -135,8 +137,8 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
       <a href="#features">Features</a>
       <a href="#overlay">Overlay</a>
       <a href="#about">About</a>
+      <a href="#download" class="nav-dl">Download</a>
     </nav>
-    <button type="button" class="btn small">Download</button>
   </header>
 
   <main id="top">
@@ -156,9 +158,9 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
       <div class="win" role="img" aria-label="The Rostr server list showing players, ping, FPS and region for each server">
         <div class="bar"><i></i><i></i><i></i></div>
         <div class="body">
-          <div class="side"><b>Play</b><b class="on">Library</b><b>Friends</b><b>Settings</b></div>
+          <div class="side"><b class="on">Play</b><b>Library</b><b>Friends</b><b>Settings</b></div>
           <div class="main">
-            <div class="tools"><span class="chip on">Most</span><span class="chip">Fewest</span><span class="chip">Newest</span><span class="chip">Ping</span><span class="chip">Region: all</span></div>
+            <div class="tools"><span class="chip on">Most players</span><span class="chip">Fewest players</span><span class="chip">Newest</span><span class="chip">Best ping</span><span class="chip">Region: all</span></div>
             <div class="srv-h"><span>PLAYERS</span><span>PING</span><span>FPS</span><span>AGE</span><span>REGION</span><span></span></div>
             <div class="srv" style="--c:#3DD68C"><span>38 / 40</span><span class="p">67 ms</span><span>59 fps</span><span>2m+</span><span class="r">Frankfurt am Main, DE</span><span class="join">Join</span></div>
             <div class="srv" style="--c:#3DD68C"><span>36 / 40</span><span class="p">74 ms</span><span>52 fps</span><span>2m+</span><span class="r">London, England, GB</span><span class="join">Join</span></div>
@@ -174,32 +176,28 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
       <div class="split">
         <div>
           <h2>Everything between “Play” and the game.</h2>
-          <p class="intro">The parts of launching Roblox that the website hides, put in one window.</p>
+          <p class="intro">Everything the Roblox website leaves out, in one window.</p>
         </div>
         <div>
           <div class="item">
-            <h3>A server browser with real numbers</h3>
-            <p>Every server lists its players, ping and FPS. Sort by most players, fewest, newest or lowest ping, and filter by minimum players, maximum ping or region. Green means good, amber means playable, red means laggy.</p>
+            <h3>Know what you’re joining</h3>
+            <p>Every server shows its players, ping, FPS and region before you click. Rostr works out the regions by itself while the list loads, so there is nothing to press. Sort by most or fewest players, newest or best ping, then filter by region or maximum ping. Green is smooth, amber is fine, red is trouble.</p>
           </div>
           <div class="item">
-            <h3>Regions found for you</h3>
-            <p>When a server list loads, Rostr asks Roblox where those servers are and fills in the region column as answers arrive. Your list stays where you scrolled it. It needs an account selected in the sidebar.</p>
+            <h3>Your frame rate, your rules</h3>
+            <p>Set an FPS cap with the slider (30 to 360) or type a higher number. One click turns on FPS unlock, low graphics, max performance, high quality or less telemetry. Power users can edit the raw FastFlags too.</p>
           </div>
           <div class="item">
-            <h3>FPS cap and FastFlag presets</h3>
-            <p>Set an FPS cap from 30 up to 360 with the slider, or type a higher number. One-click presets cover FPS unlock, low graphics, max performance, high quality and less telemetry. Advanced users can edit the raw FastFlag JSON.</p>
+            <h3>Switch accounts without logging in again</h3>
+            <p>Add as many accounts as you like and swap between them from the sidebar. Saved logins are encrypted with your Windows login. Turn on Multi Roblox to run more than one client at once.</p>
           </div>
           <div class="item">
-            <h3>Several accounts, several clients</h3>
-            <p>Add more than one account and switch from the sidebar. Saved logins are encrypted with your Windows login. Multi Roblox lets you run more than one client at the same time.</p>
+            <h3>Your games, one click away</h3>
+            <p>Recent games and favorites, with the time you’ve spent in each. Play drops you into a random server, Servers lets you choose, and Rejoin takes you back to your last one. You can also paste a private server link or check who’s online.</p>
           </div>
           <div class="item">
-            <h3>Library, favorites and friends</h3>
-            <p>Recent and favorite games with how long you have played each, rejoin your last server, join private servers from a link, and see which friends are online.</p>
-          </div>
-          <div class="item">
-            <h3>Keeps the client tidy</h3>
-            <p>Rostr installs the Roblox client for you and removes old versions automatically, so they do not pile up on your disk.</p>
+            <h3>Stays out of your way</h3>
+            <p>Rostr installs the Roblox client for you and clears out old versions, so your disk doesn’t fill up with them.</p>
           </div>
         </div>
       </div>
@@ -256,8 +254,11 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
 // Picks the download label for the visitor's system. Add a new entry here when another platform ships.
 (function () {
   var PLATFORMS = {
-    windows: { name: "Windows", note: "Windows 10 and 11" },
-    linux: { name: "Linux", note: "Linux" }
+    // url: where the download button goes. Leave it empty and the button does nothing.
+    windows: { name: "Windows", note: "Windows 10 and 11",
+      url: "https://github.com/stepak2321/rostr.trebka.net/releases/latest/download/Rostr.exe" },
+    // No Linux build yet. Put its release file link in url when it exists and the button will start working.
+    linux: { name: "Linux", note: "Linux version coming soon", url: "" }
   };
 
   function detect() {
@@ -275,6 +276,13 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
   for (var i = 0; i < names.length; i++) names[i].textContent = os.name;
   var note = document.getElementById("os-note");
   if (note) note.textContent = os.note;
+
+  var buttons = document.querySelectorAll(".btn");
+  for (var j = 0; j < buttons.length; j++) {
+    buttons[j].addEventListener("click", function () {
+      if (os.url) window.location.href = os.url;
+    });
+  }
 })();
 </script>
 </body>
