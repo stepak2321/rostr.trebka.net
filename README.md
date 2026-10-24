@@ -28,6 +28,8 @@ You can also press Play on roblox.com. The game opens in Rostr first, so you can
 - **Multiple accounts.** Add as many accounts as you like and switch from the sidebar. Saved logins are encrypted with your Windows login. Multi Roblox lets you run more than one client at once.
 - **Library and Friends.** Recent games and favorites with your playtime in each, private server links, and a view of who is online.
 - **In-game overlay.** A small click-through box in the corner of the Roblox window, shown only while Roblox is in front. Choose which lines it shows: ping, CPU, RAM, session time, region and account name. The default hide and show hotkey is `Ctrl` + `Shift` + `O`, and you can change it.
+- **Discord status.** Shows the Roblox game you are in on your Discord profile, with the game name, its creator, a timer and two buttons: Get Rostr and See game page. You can turn it off, or hide the game name, in Settings. It does nothing if Discord is not running.
+- **Automatic updates.** Rostr checks the GitHub releases when it starts and installs new versions by itself. Every download is verified against its SHA-256 checksum before it replaces the old exe. You can turn this off in Settings, then use Check for updates when you want one.
 - **Client management.** Rostr installs the Roblox client for you and removes old versions so they do not pile up on your disk.
 
 ## Good to know
