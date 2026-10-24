@@ -34,12 +34,12 @@ You can also press Play on roblox.com. The game opens in Rostr first, so you can
 
 - A ping marked with a tilde (`~`) is an estimate. Roblox servers do not answer ping, so Rostr measures the last router on the way instead.
 - Roblox does not publish when a server was created. The **Age** column shows how long Rostr has known a server, not its true age.
-- Rostr keeps its data in `%LocalAppData%\MyRobloxLauncher`: your saved accounts (encrypted), settings, FastFlag overrides and log files.
+- Rostr keeps its data in `%LocalAppData%\Rostr`: your saved accounts (encrypted), settings, FastFlag overrides and log files.
 - To catch Play on roblox.com, Rostr registers itself for `roblox-player:` links for your Windows user only. It saves the original handler the first time so it can be restored.
 
 ## Uninstall
 
-Close Rostr and delete `Rostr.exe`. To remove your saved data too, delete the `%LocalAppData%\MyRobloxLauncher` folder.
+Close Rostr and delete `Rostr.exe`. To remove your saved data too, delete the `%LocalAppData%\Rostr` folder.
 
 ## Issues and feedback
 
