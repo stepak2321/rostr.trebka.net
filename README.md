@@ -22,26 +22,39 @@ You can also press Play on roblox.com. The game opens in Rostr first, so you can
 
 ## Features
 
-- **Server browser.** Every server lists its players, ping, FPS and region. Regions are detected automatically while the list loads. Sort by most or fewest players, newest or best ping, and filter by region, minimum players or maximum ping. Colors show quality at a glance: green is smooth, amber is fine, red is trouble.
+- **Server browser.** Every server lists its players, ping, FPS and region. Regions are detected automatically while the list loads. Sort by most or fewest players or best ping, and filter by region, minimum players or maximum ping. Colors show quality at a glance: green is smooth, amber is fine, red is trouble.
 - **Random server and Rejoin.** Join a random server in one click, or go back to your last one with Rejoin.
-- **FPS cap and FastFlags.** Set an FPS cap with the slider (30 to 360) or type a higher number. One-click presets for FPS unlock, low graphics, max performance, high quality and less telemetry. Raw FastFlags can be edited too.
+- **FPS cap and FastFlags.** Found in Settings > Performance. Set an FPS cap with the slider (30 to 360) or type a higher number. One-click presets for FPS unlock, low graphics, max performance, high quality and less telemetry. Raw FastFlags can be edited too.
 - **Multiple accounts.** Add as many accounts as you like and switch from the sidebar. Saved logins are encrypted with your Windows login. Multi Roblox lets you run more than one client at once.
 - **Library and Friends.** Recent games and favorites with your playtime in each, private server links, and a view of who is online.
-- **In-game overlay.** A small click-through box in the corner of the Roblox window, shown only while Roblox is in front. Choose which lines it shows: ping, CPU, RAM, session time, region and account name. The default hide and show hotkey is `Ctrl` + `Shift` + `O`, and you can change it.
-- **Discord status.** Shows the Roblox game you are in on your Discord profile, with the game name, its creator, a timer and two buttons: Get Rostr and See game page. You can turn it off, or hide the game name, in Settings. It does nothing if Discord is not running.
-- **Automatic updates.** Rostr checks the GitHub releases when it starts and installs new versions by itself. Every download is verified against its SHA-256 checksum before it replaces the old exe. You can turn this off in Settings, then use Check for updates when you want one.
-- **Client management.** Rostr installs the Roblox client for you and removes old versions so they do not pile up on your disk.
+- **In-game overlay.** A small click-through box in the corner of the Roblox window, shown only while Roblox is in front. Choose which lines it shows in Settings > Overlay: ping, CPU, RAM, session time, region and account name. You can also pick the corner it sits in and preview it. The default hide and show hotkey is `Ctrl` + `Shift` + `O`, and you can change it.
+- **Discord status.** Shows the Roblox game you are in on your Discord profile, with the game name, its creator, a timer and two buttons: Get Rostr and See game page. You can turn it off, or hide the game name, in Settings > Discord. It does nothing if Discord is not running.
+- **Languages.** English, Čeština, Deutsch, Español, Français, Polski, Português, Русский and Türkçe. Rostr follows your Windows language on first start, and you can change it any time in Settings > Appearance. Texts that are not translated yet stay in English.
+- **Themes.** Dark, Midnight, AMOLED, Ocean, Forest, Sunset, Rose and Light. Pick one in Settings > Appearance. They repaint the app instantly, no restart.
+- **Client management.** Rostr installs the Roblox client for you and removes old versions so they do not pile up on your disk. Settings > Storage shows how much space Rostr uses and has a Clean now button.
+- **Organized settings.** Settings has a tab list on the left: About, Performance, Overlay, General, Appearance, Discord and Storage, so every option is easy to find.
+- **README and change log inside the app.** The **Open README** button in the sidebar shows this page without opening a browser. When an update is available, **See change log** shows what is new in that version before you install it.
+- **Self-update.** Rostr checks GitHub for a new release, shows what changed, and installs it for you after you confirm. The download is checked against its SHA-256 first.
+
+## Updates
+
+Rostr checks the [releases](https://github.com/stepak2321/rostr.trebka.net/releases) page shortly after it starts and then every few hours. When a newer version exists you can choose **Install now**, **See change log** or **Not now**. You can also check by hand in Settings > About with **Check for updates**, and open the change log of the installed version with **See change log**.
 
 ## Good to know
 
 - A ping marked with a tilde (`~`) is an estimate. Roblox servers do not answer ping, so Rostr measures the last router on the way instead.
-- Roblox does not publish when a server was created. The **Age** column shows how long Rostr has known a server, not its true age.
 - Rostr keeps its data in `%LocalAppData%\Rostr`: your saved accounts (encrypted), settings, FastFlag overrides and log files.
 - To catch Play on roblox.com, Rostr registers itself for `roblox-player:` links for your Windows user only. It saves the original handler the first time so it can be restored.
 
 ## Uninstall
 
 Close Rostr and delete `Rostr.exe`. To remove your saved data too, delete the `%LocalAppData%\Rostr` folder.
+
+## Adding a language or a theme
+
+- **Language (app).** Add the code and name to `Codes` and `Names` in `Core/Loc.cs`, then one more `|text` column to each line of `Table`. Missing texts fall back to English.
+- **Language (website).** Add a new entry to the `T` object in the script at the bottom of `RostrWeb/index.html`.
+- **Theme.** Add a row of 15 colors to `Themes` in `Core/ThemeManager.cs`. The order of the colors is written above the table.
 
 ## Issues and feedback
 
