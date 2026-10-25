@@ -207,6 +207,49 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
 .ed-status a:hover{text-decoration:underline}
 @media (prefers-reduced-motion:no-preference){.ed-backdrop:not([hidden]) .ed-win{animation:edIn .16s ease-out}@keyframes edIn{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}}
 @media (max-width:640px){.ed-backdrop{padding:0}.ed-win{height:100%;border-radius:0;border:0}.ed-code{font-size:12.5px}.ed-code .n{width:2.8em;padding-right:.7em}.ed-status a{margin-left:0}}
+
+/* interactive mocks: every colour comes from --w* so a theme can repaint them */
+.win{--wbg:#0F1117;--wbg2:#12141B;--wcard:#171A22;--wline:#232838;--wdim:#262B38;--wmuted:#7C8499;--wsoft:#9AA1B5;--wtext2:#C9CEDC;--wtext:#E6E8EE;--wacc:#3D6BFF;--wai:#fff;background:var(--wbg);border-color:var(--wdim);color:var(--wtext);transition:background .2s,color .2s}
+.win .bar,.win .side{background:var(--wbg2)}.win .bar{border-color:var(--wline)}.win .bar i{background:var(--wdim)}
+.win .side{color:var(--wsoft)}.win .side b,.win .side button{padding:7px 10px;border-radius:8px;font:600 12px var(--body);text-align:left;border:0;background:transparent;color:inherit}
+.win .side button{cursor:pointer}.win .side button:hover:not(.on){color:var(--wtext)}.win .side b[aria-disabled]{cursor:default}
+.win .side b.on,.win .side button.on{background:var(--wline);color:var(--wtext)}
+.win .chip{background:var(--wdim);color:var(--wtext2)}.win .chip.on{background:var(--wacc);color:var(--wai)}
+.win .srv,.win .card{background:var(--wcard)}.win .srv-h,.win .row2 span{color:var(--wmuted)}.win .srv .r{color:var(--wsoft)}
+.win .join{background:var(--wacc);color:var(--wai)}.win .row2{border-color:var(--wline)}
+.win .sw{background:var(--wdim);cursor:pointer}.win .sw.on{background:var(--wacc)}
+.win .main{min-height:318px}.pg[hidden]{display:none}
+.pgh{font:700 17px var(--display);margin:0 0 3px}.pgs{font-size:11px;color:var(--wmuted);margin:0 0 10px}
+.stats{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:4px 26px;background:var(--wcard);border-radius:10px;padding:10px 14px;margin-bottom:12px}
+.stats small,.cap{font-size:9.5px;font-weight:600;color:var(--wmuted);letter-spacing:.03em}.stats b{font-size:14px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px}.cap{display:block;margin:0 0 6px 2px}
+.lc,.fc{background:var(--wcard);border-radius:10px;padding:9px;display:flex;gap:10px;margin-bottom:6px;align-items:center}.lc{align-items:flex-start}
+.ic{width:40px;height:40px;border-radius:9px;flex:none;display:grid;place-items:center;font:800 16px var(--display);color:#fff}
+.lc b,.fc b{display:block;font-size:12px}.lc span,.fc span{display:block;font-size:10.5px;color:var(--wmuted);margin-top:1px}.lc span.pt{color:#8FA8FF}
+.lc .bt2{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.lb{border:0;border-radius:6px;padding:4px 9px;font:600 10.5px var(--body);color:#fff;background:var(--wdim);cursor:pointer}.lb.g{background:#2FBF71}
+.fc .av{width:34px;height:34px;border-radius:50%;flex:none;position:relative;display:grid;place-items:center;font:800 13px var(--display);color:#fff}
+.fc .av i{position:absolute;right:-2px;bottom:-2px;width:11px;height:11px;border-radius:50%;background:var(--s);border:2px solid var(--wcard)}
+.fc>div:nth-child(2){flex:1;min-width:0}.fc .lb[disabled]{opacity:.4;cursor:default}
+.ftools{display:flex;gap:6px;align-items:center;margin-bottom:10px;font-size:10.5px;color:var(--wmuted)}.ftools .lb{padding:5px 10px}
+.mt{display:flex;flex-wrap:wrap;gap:8px;padding-top:10px}
+.mt button{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;background:linear-gradient(135deg,var(--b) 55%,var(--a) 55%);box-shadow:0 0 0 1px var(--wline)}
+.mt button[aria-pressed=true]{border-color:var(--wtext)}
+.swatches li{padding:0;border:0;background:none}
+.tbtn{appearance:none;display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.tbtn:hover{border-color:var(--accent)}.tbtn[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+/* Discord "Playing" card, laid out like Discord's own profile card */
+.dx{width:min(100%,340px);background:#111214;border-radius:12px;padding:16px;font:14px/1.3 "gg sans","Noto Sans",system-ui,sans-serif;color:#f2f3f5;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.dx h5{margin:0 0 12px;font:700 12px/1 "gg sans","Noto Sans",system-ui,sans-serif;color:#f2f3f5}
+.dx .row{display:flex;gap:12px;align-items:center}.dx .big{width:60px;height:60px;border-radius:8px;flex:none;position:relative;display:grid;place-items:center;font:800 26px var(--display);color:#fff;background:#12141B}
+.dx .big img{width:100%;height:100%;border-radius:8px;display:block}.dx .sm{position:absolute;right:-6px;bottom:-6px;width:24px;height:24px;border-radius:50%;border:3px solid #111214;background:#12141B;overflow:hidden}.dx .sm img{width:100%;height:100%;display:block}
+.dx .t b{display:block;font-size:14px;font-weight:600}.dx .t span{display:block;font-size:12px;color:#dbdee1;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dx .t .el{color:#23a559}
+.dx .bts{display:grid;gap:8px;margin-top:14px}.dx .bts a{display:block;text-align:center;background:#4e5058;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:7px;border-radius:3px;cursor:default}
+.seg{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:16px}
+.seg button{appearance:none;border:1px solid #2A3040;background:rgba(15,17,23,.6);color:#C9CEDC;font:600 12px var(--body);padding:6px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed=true]{background:#3D6BFF;border-color:#3D6BFF;color:#fff}
+@media (max-width:860px){.win:not(.set) .side{display:flex;flex-direction:row;flex-wrap:wrap;padding:10px}}
+.dx .big .gi{position:absolute;inset:0}
 </style>
 </head>
 <body>
@@ -243,11 +286,12 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
         </div>
       </div>
 
-      <div class="win" role="img" aria-label="The Rostr server list showing players, ping, FPS and region for each server">
+      <div class="win" role="group" aria-label="The Rostr app. Use the menu on the left to switch between Play, Library and Friends.">
         <div class="bar"><i></i><i></i><i></i></div>
         <div class="body">
-          <div class="side"><b class="on">Play</b><b>Library</b><b>Friends</b><b>Settings</b><b>Open README</b></div>
+          <div class="side"><button class="on" type="button" data-page="play">Play</button><button type="button" data-page="library">Library</button><button type="button" data-page="friends">Friends</button><b aria-disabled="true">Settings</b><b aria-disabled="true">Open README</b></div>
           <div class="main">
+            <div class="pg" data-pg="play">
             <div class="tools"><span class="chip on">Most players</span><span class="chip">Fewest players</span><span class="chip">Best ping</span><span class="chip">Region: all</span></div>
             <div class="srv-h"><span>PLAYERS</span><span>PING</span><span>FPS</span><span>REGION</span><span></span></div>
             <div class="srv" style="--c:#3DD68C"><span>38 / 40</span><span class="p">67 ms</span><span>59 fps</span><span class="r">Frankfurt am Main, DE</span><span class="join">Join</span></div>
@@ -255,6 +299,18 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
             <div class="srv" style="--c:#F5B83D"><span>35 / 40</span><span class="p">94 ms</span><span>60 fps</span><span class="r">Paris, FR</span><span class="join">Join</span></div>
             <div class="srv" style="--c:#F5B83D"><span>33 / 40</span><span class="p">121 ms</span><span>60 fps</span><span class="r">New York City, US</span><span class="join">Join</span></div>
             <div class="srv" style="--c:#F25C5C"><span>30 / 40</span><span class="p">448 ms</span><span>60 fps</span><span class="r">Sydney, AU</span><span class="join">Join</span></div>
+            </div>
+            <div class="pg" data-pg="library" hidden>
+              <h5 class="pgh">Library</h5><p class="pgs">Your games and how long you have played them.</p>
+              <div class="stats"><small>TOTAL PLAYTIME</small><small>GAMES PLAYED</small><small>MOST PLAYED</small><b>42 h 15 min</b><b>4</b><b>Adopt Me!</b></div>
+              <div class="cols"><div><span class="cap">FAVORITES</span><div class="lc"><div class="ic" style="background:linear-gradient(135deg,#3D6BFF,#8B5CF6)">A</div><div><b>Adopt Me!</b><span>by Uplift Games</span><span class="pt">18 h 40 min</span><div class="bt2"><button class="lb g" type="button">Play</button><button class="lb" type="button">Servers</button><button class="lb" type="button">Rejoin</button><button class="lb" type="button" aria-label="Favorite">&#9733;</button></div></div></div><div class="lc"><div class="ic" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">B</div><div><b>Blox Fruits</b><span>by Gamer Robot Inc</span><span class="pt">9 h 5 min</span><div class="bt2"><button class="lb g" type="button">Play</button><button class="lb" type="button">Servers</button><button class="lb" type="button" aria-label="Favorite">&#9733;</button></div></div></div></div>
+              <div><span class="cap">RECENT</span><div class="lc"><div class="ic" style="background:linear-gradient(135deg,#14b8a6,#3b82f6)">B</div><div><b>Brookhaven RP</b><span>by Wolfpaq</span><span class="pt">11 h 2 min</span><div class="bt2"><button class="lb g" type="button">Play</button><button class="lb" type="button">Servers</button><button class="lb" type="button">Rejoin</button><button class="lb" type="button" aria-label="Favorite">&#9733;</button></div></div></div><div class="lc"><div class="ic" style="background:linear-gradient(135deg,#ec4899,#f97316)">T</div><div><b>Tower of Hell</b><span>by YXCeptional Studios</span><span class="pt">3 h 28 min</span><div class="bt2"><button class="lb g" type="button">Play</button><button class="lb" type="button">Servers</button><button class="lb" type="button" aria-label="Favorite">&#9733;</button></div></div></div></div></div>
+            </div>
+            <div class="pg" data-pg="friends" hidden>
+              <h5 class="pgh">Friends</h5><p class="pgs">Join a friend who is in a game.</p>
+              <div class="ftools"><button class="lb" type="button" id="frefresh">Refresh</button><button class="lb" type="button" id="offbtn">Offline friends: hidden</button><span id="fcount">3 online</span></div>
+              <div class="fc"><div class="av" style="background:linear-gradient(135deg,#3D6BFF,#8B5CF6);--s:#3DD68C">M<i></i></div><div><b>Mia_Builds</b><span>Playing Adopt Me!</span></div><button class="lb g" type="button">Join</button></div><div class="fc"><div class="av" style="background:linear-gradient(135deg,#f59e0b,#ef4444);--s:#3DD68C">K<i></i></div><div><b>Kuba2011</b><span>Playing Blox Fruits</span></div><button class="lb g" type="button">Join</button></div><div class="fc"><div class="av" style="background:linear-gradient(135deg,#14b8a6,#3b82f6);--s:#3D8BFF">N<i></i></div><div><b>NovaFox</b><span>Online</span></div><button class="lb g" type="button" disabled>Join</button></div><div class="fc" data-off><div class="av" style="background:linear-gradient(135deg,#ec4899,#f97316);--s:#5C6377">T<i></i></div><div><b>Tomas_R</b><span>Offline</span></div><button class="lb g" type="button" disabled>Join</button></div>
+            </div>
           </div>
         </div>
       </div>
@@ -325,20 +381,28 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
         <div>
           <h2 data-i18n="sT">Settings that are easy to find.</h2>
           <p data-i18n="sP">A tab list on the left: About, Performance, Overlay, General, Appearance, Discord and Storage. Related options sit together in one card, with short descriptions, so nothing is buried in one long page.</p>
-          <ul class="toggles swatches" aria-label="Themes">
-            <li><i style="--b:#0F1117;--a:#3D6BFF"></i>Dark</li><li><i style="--b:#070A14;--a:#6C8CFF"></i>Midnight</li><li><i style="--b:#000000;--a:#3D6BFF"></i>AMOLED</li><li><i style="--b:#0A1418;--a:#14B8A6"></i>Ocean</li><li><i style="--b:#0E1410;--a:#3FB950"></i>Forest</li><li><i style="--b:#16100F;--a:#F97316"></i>Sunset</li><li><i style="--b:#150F13;--a:#EC4899"></i>Rose</li><li><i style="--b:#F3F5F9;--a:#3D6BFF"></i>Light</li>
-          </ul>
+          <ul class="toggles swatches" aria-label="Themes. Pick one to preview it in the settings window."><li><button type="button" class="tbtn" data-theme="Dark" aria-pressed="false"><i style="--b:#0F1117;--a:#3D6BFF"></i>Dark</button></li><li><button type="button" class="tbtn" data-theme="Midnight" aria-pressed="false"><i style="--b:#070A14;--a:#6C8CFF"></i>Midnight</button></li><li><button type="button" class="tbtn" data-theme="AMOLED" aria-pressed="false"><i style="--b:#000000;--a:#3D6BFF"></i>AMOLED</button></li><li><button type="button" class="tbtn" data-theme="Ocean" aria-pressed="false"><i style="--b:#0A1418;--a:#14B8A6"></i>Ocean</button></li><li><button type="button" class="tbtn" data-theme="Forest" aria-pressed="false"><i style="--b:#0E1410;--a:#3FB950"></i>Forest</button></li><li><button type="button" class="tbtn" data-theme="Sunset" aria-pressed="false"><i style="--b:#16100F;--a:#F97316"></i>Sunset</button></li><li><button type="button" class="tbtn" data-theme="Rose" aria-pressed="false"><i style="--b:#150F13;--a:#EC4899"></i>Rose</button></li><li><button type="button" class="tbtn" data-theme="Light" aria-pressed="false"><i style="--b:#F3F5F9;--a:#3D6BFF"></i>Light</button></li></ul>
         </div>
-        <div class="win set" role="img" aria-label="The Rostr settings page with a tab list on the left">
+        <div class="win set" id="setwin" role="group" aria-label="The Rostr settings page. Pick a theme on the left to see it here.">
           <div class="bar"><i></i><i></i><i></i></div>
           <div class="body">
-            <div class="side"><b>About</b><b>Performance</b><b>Overlay</b><b class="on">General</b><b>Appearance</b><b>Discord</b><b>Storage</b></div>
+            <div class="side"><b aria-disabled="true">About</b><b aria-disabled="true">Performance</b><b aria-disabled="true">Overlay</b><button class="on" type="button" data-sp="general">General</button><button type="button" data-sp="appearance">Appearance</button><button type="button" data-sp="discord">Discord</button><b aria-disabled="true">Storage</b></div>
             <div class="main">
-              <div class="card">
+              <div class="card pg" data-sp-pg="general">
                 <h4>Launcher behavior</h4>
                 <div class="row2"><div><b>Minimize when the game starts</b><span>The launcher gets out of the way.</span></div><i class="sw on"></i></div>
                 <div class="row2"><div><b>Keep running in the tray when closed</b><span>Discord status and playtime keep working.</span></div><i class="sw on"></i></div>
                 <div class="row2"><div><b>Start with Windows</b><span>Starts hidden in the tray.</span></div><i class="sw"></i></div>
+              </div>
+              <div class="card pg" data-sp-pg="appearance" hidden>
+                <h4>Appearance</h4>
+                <div class="row2"><div><b>Theme</b><span id="tname">Dark</span></div></div>
+                <div class="mt" id="mt"></div>
+              </div>
+              <div class="card pg" data-sp-pg="discord" hidden>
+                <h4>Discord status</h4>
+                <div class="row2"><div><b>Discord status</b><span>Shows the game you are playing on your Discord profile, or that you are browsing in Rostr when no game is running.</span></div><i class="sw on"></i></div>
+                <div class="row2"><div><b>Hide the game name on Discord</b><span>Your status says &quot;Playing a Roblox game&quot; and the game page button is left out.</span></div><i class="sw"></i></div>
               </div>
             </div>
           </div>
@@ -352,15 +416,14 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
           <h2 data-i18n="dcT">Your game on your Discord profile.</h2>
           <p data-i18n="dcP">Rostr shows the Roblox game you are in on your Discord profile, with the game name, its creator, a timer and two buttons: Get Rostr and See game page. You can turn it off, or hide the game name, in Settings.</p>
         </div>
-        <div class="stage" role="img" aria-label="A Discord profile showing the Roblox game being played through Rostr" style="display:grid;place-items:center;padding:24px">
-          <div class="dc">
-            <small>PLAYING A GAME</small>
-            <div class="row">
-              <div class="art">R<i>R</i></div>
-              <div><b>Adopt Me!</b><span>by Uplift Games</span><span class="t">00:42:17 elapsed</span></div>
-            </div>
-            <div class="bt"><em>Get Rostr</em><em>See game page</em></div>
+        <div class="stage" style="display:grid;place-items:center;align-content:center;padding:24px" aria-label="Preview of the Rostr status on a Discord profile">
+          <div class="dx" id="dx">
+            <h5>Playing a game</h5>
+            <div class="row"><div class="big" id="dxbig"></div>
+              <div class="t"><b>Rostr</b><span id="dxd"></span><span id="dxs"></span><span class="el" id="dxel"></span></div></div>
+            <div class="bts" id="dxb"></div>
           </div>
+          <div class="seg" role="group" aria-label="Status type"><button type="button" data-dx="game" aria-pressed="true">In a game</button><button type="button" data-dx="browse" aria-pressed="false">Browsing servers</button><button type="button" data-dx="hidden" aria-pressed="false">Game name hidden</button></div>
         </div>
       </div>
     </section>
@@ -714,6 +777,144 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
     } catch (e) {}
     posEl.textContent = "Ln " + ln + ", Col " + col;
   });
+})();
+</script>
+<script>
+(function () {
+  var TH = {"Dark": ["0F1117", "12141B", "171A22", "232838", "262B38", "7C8499", "9AA1B5", "C9CEDC", "E6E8EE", "3D6BFF"], "Midnight": ["070A14", "0A0E1C", "0E1428", "1A2548", "1C2750", "7886B0", "98A6CC", "C3CCE6", "E8EDFB", "6C8CFF"], "AMOLED": ["000000", "050505", "0D0D0D", "1F1F1F", "242424", "808080", "A0A0A0", "CCCCCC", "F2F2F2", "3D6BFF"], "Ocean": ["0A1418", "0D1A1F", "11222A", "1C3A45", "1F404C", "7BA3B1", "9CC0CC", "C6DDE5", "E6F3F7", "14B8A6"], "Forest": ["0E1410", "111A14", "16201A", "233629", "27392D", "86A18F", "A5BDAD", "CDDCD2", "EAF3EC", "3FB950"], "Sunset": ["16100F", "1C1413", "241A18", "3B2A26", "42302B", "A88C83", "C4ABA2", "E3D2CB", "F7EEEA", "F97316"], "Rose": ["150F13", "1B1318", "23181F", "3B2A36", "432F3C", "AD8F9C", "C8AEBA", "E6D2DB", "F8EEF2", "EC4899"], "Light": ["F3F5F9", "E9ECF3", "FFFFFF", "E4E8F0", "7F8AA3", "5F6A82", "4A5468", "2E3648", "141A28", "3D6BFF"]}, LOGO = "data:image/png;base64,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";
+  var $ = function (q, r) { return (r || document).querySelector(q); }, $$ = function (q, r) { return Array.prototype.slice.call((r || document).querySelectorAll(q)); };
+
+  // app menu: Play / Library / Friends (Settings and Open README stay as pictures)
+  var nav = $$('.win [data-page]');
+  nav.forEach(function (b) { b.addEventListener('click', function () {
+    nav.forEach(function (x) { x.classList.toggle('on', x === b); });
+    $$('.win [data-pg]').forEach(function (p) { p.hidden = p.getAttribute('data-pg') !== b.getAttribute('data-page'); });
+  }); });
+  var off = false, ob = $('#offbtn');
+  ob.addEventListener('click', function () {
+    off = !off; ob.textContent = 'Offline friends: ' + (off ? 'shown' : 'hidden');
+    $$('[data-off]').forEach(function (r) { r.style.display = off ? '' : 'none'; });
+    $('#fcount').textContent = off ? '3 online, 1 offline' : '3 online';
+  });
+  $$('[data-off]').forEach(function (r) { r.style.display = 'none'; });
+
+  // settings tabs + switches
+  var sp = $$('[data-sp]');
+  sp.forEach(function (b) { b.addEventListener('click', function () {
+    sp.forEach(function (x) { x.classList.toggle('on', x === b); });
+    $$('[data-sp-pg]').forEach(function (p) { p.hidden = p.getAttribute('data-sp-pg') !== b.getAttribute('data-sp'); });
+  }); });
+  $$('#setwin .sw').forEach(function (s) { s.addEventListener('click', function () { s.classList.toggle('on'); }); });
+
+  // themes: the same colours the launcher uses (Core/ThemeManager.cs)
+  var K = ['bg', 'bg2', 'card', 'line', 'dim', 'muted', 'soft', 'text2', 'text', 'acc'], win = $('#setwin'), mt = $('#mt');
+  Object.keys(TH).forEach(function (n) {
+    var b = document.createElement('button'); b.type = 'button'; b.setAttribute('data-theme', n); b.setAttribute('aria-label', n); b.title = n;
+    b.style.setProperty('--b', '#' + TH[n][0]); b.style.setProperty('--a', '#' + TH[n][9]); mt.appendChild(b);
+  });
+  function theme(n) {
+    K.forEach(function (k, i) { win.style.setProperty('--w' + k, '#' + TH[n][i]); });
+    $$('[data-theme]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-theme') === n ? 'true' : 'false'); });
+    $('#tname').textContent = n;
+  }
+  $$('[data-theme]').forEach(function (b) { b.addEventListener('click', function () { theme(b.getAttribute('data-theme')); }); });
+  theme('Dark');
+
+  // Discord card: same fields Rostr sends (details, state, large/small image, timer, buttons)
+  var M = {
+    game:   { d: 'Adopt Me!', s: 'Roblox \u00b7 by Uplift Games', big: '<span style="position:absolute;inset:0;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,#3D6BFF,#8B5CF6)">A</span><span class="sm"><img alt="" src="' + LOGO + '"></span>', b: ['Get Rostr', 'See game page'] },
+    browse: { d: 'Browsing servers', s: 'Adopt Me!', big: '<img alt="" src="' + LOGO + '">', b: ['Get Rostr'] },
+    hidden: { d: 'Playing a Roblox game', s: 'Roblox', big: '<img alt="" src="' + LOGO + '">', b: ['Get Rostr'] }
+  }, mode = 'game', secs = 42 * 60 + 17;
+  function clock() { var h = Math.floor(secs / 3600), m = Math.floor(secs / 60) % 60, s = secs % 60, p = function (x) { return (x < 10 ? '0' : '') + x; };
+    $('#dxel').textContent = (h ? h + ':' + p(m) : p(m)) + ':' + p(s) + ' elapsed'; }
+  function dx(k) {
+    mode = k; var c = M[k];
+    $('#dxbig').innerHTML = c.big; $('#dxd').textContent = c.d; $('#dxs').textContent = c.s;
+    $('#dxb').innerHTML = c.b.map(function (t) { return '<a>' + t + '</a>'; }).join('');
+    $$('[data-dx]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-dx') === k ? 'true' : 'false'); });
+  }
+  $$('[data-dx]').forEach(function (b) { b.addEventListener('click', function () { dx(b.getAttribute('data-dx')); }); });
+  dx('game');
+  window.__rostrGame = function (g) {
+    var e = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+    M.game.d = g.name; M.game.s = 'Roblox \u00b7 by ' + g.by; M.browse.s = g.name;
+    M.game.big = '<span style="position:absolute;inset:0;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,#3D6BFF,#8B5CF6)">' + e(g.name.charAt(0)) + '</span>' +
+      (g.icon ? '<img class="gi" alt="" referrerpolicy="no-referrer" onerror="this.remove()" src="' + e(g.icon) + '">' : '') +
+      '<span class="sm"><img alt="" src="' + LOGO + '"></span>';
+    dx(mode);
+  };
+  clock(); setInterval(function () { secs++; clock(); }, 1000);
+})();
+</script>
+<script>
+/* Live data: random public Roblox players (from a public friends list) with their headshots, and real game names, creators and icons.
+   Every request tries roblox.com first, then a public mirror (roproxy.com) in case the browser blocks it. If both fail, the sample content stays. */
+(function () {
+  var $$ = function (q) { return Array.prototype.slice.call(document.querySelectorAll(q)); };
+  var SEED_USER = 156;
+  var PLACES = [920587237, 2753915549, 4924922222, 1962086868, 142823291, 606849621, 286090429, 189707];
+  function ok(r) { if (!r.ok) throw new Error(r.status); return r.json(); }
+  function api(u) { return fetch(u).then(ok).catch(function () { return fetch(u.replace(/\.roblox\.com/, '.roproxy.com')).then(ok); }); }
+  function pick(a, n) { a = a.slice(); var o = []; while (o.length < n && a.length) o.push(a.splice(Math.floor(Math.random() * a.length), 1)[0]); return o; }
+  function bg(el, u) {
+    var i = new Image(); i.referrerPolicy = 'no-referrer';
+    i.onload = function () {
+      el.dataset.g = el.dataset.g || getComputedStyle(el).backgroundImage;
+      el.style.backgroundImage = 'url("' + u + '"),' + el.dataset.g;
+      el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center'; el.style.color = 'transparent';
+    };
+    i.src = u;
+  }
+  function games() {
+    return Promise.all(pick(PLACES, 4).map(function (p) {
+      return api('https://apis.roblox.com/universes/v1/places/' + p + '/universe').then(function (r) { return r.universeId; });
+    })).then(function (U) {
+      var q = U.join(',');
+      return Promise.all([api('https://games.roblox.com/v1/games?universeIds=' + q),
+        api('https://thumbnails.roblox.com/v1/games/icons?universeIds=' + q + '&returnPolicy=PlaceHolder&size=150x150&format=Png')]).then(function (r) {
+        var info = {}, ic = {};
+        r[0].data.forEach(function (x) { info[x.id] = x; }); r[1].data.forEach(function (x) { ic[x.targetId] = x.imageUrl; });
+        return U.map(function (u) { var g = info[u] || {}; return { name: g.name || 'Roblox game', by: (g.creator && g.creator.name) || 'Roblox', icon: ic[u] }; });
+      });
+    });
+  }
+  function players() {
+    // try random account IDs; non-existing or banned ones are skipped, then keep 4 that have a real headshot
+    var ids = []; while (ids.length < 16) ids.push(1000000 + Math.floor(Math.random() * 2500000000));
+    return Promise.all(ids.map(function (id) {
+      return api('https://users.roblox.com/v1/users/' + id).then(function (u) { return u && !u.isBanned && u.name ? u : null; }).catch(function () { return null; });
+    })).then(function (L) {
+      L = L.filter(Boolean);
+      if (!L.length) throw new Error('no players');
+      return api('https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=' + L.map(function (u) { return u.id; }).join(',') + '&size=150x150&format=Png').then(function (t) {
+        var m = {}; t.data.forEach(function (x) { if (x.state === 'Completed' && x.imageUrl) m[x.targetId] = x.imageUrl; });
+        return L.filter(function (u) { return m[u.id]; }).slice(0, 4).map(function (u) { return { name: u.name, img: m[u.id] }; });
+      });
+    });
+  }
+  function load() {
+    Promise.all([games().catch(function () { return null; }), players().catch(function () { return null; })]).then(function (r) {
+      var G = r[0], P = r[1], lc = $$('.lc'), fc = $$('.fc');
+      if (G && G.length) {
+        G.forEach(function (g, i) {
+          if (!lc[i]) return;
+          lc[i].querySelector('b').textContent = g.name; lc[i].querySelector('span').textContent = 'by ' + g.by;
+          if (g.icon) bg(lc[i].querySelector('.ic'), g.icon);
+        });
+        $$('.stats b')[2].textContent = G[0].name;
+        window.__rostrGame(G[0]);
+      }
+      if (P && P.length) P.forEach(function (p, i) {
+        if (!fc[i]) return;
+        fc[i].querySelector('b').textContent = p.name;
+        if (p.img) bg(fc[i].querySelector('.av'), p.img);
+        if (G && G[i] && i < 2) fc[i].querySelector('span').textContent = 'Playing ' + G[i].name;
+      });
+    });
+  }
+  load();
+  document.getElementById('frefresh').addEventListener('click', load);
 })();
 </script>
 </body>
