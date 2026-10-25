@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>1.3.0</Version>
+    <AssemblyVersion>1.3.0.0</AssemblyVersion>
+    <FileVersion>1.3.0.0</FileVersion>
+    <UseWPF>true</UseWPF>
+    <!-- Only for the tray icon (NotifyIcon) -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- The exe is called Rostr.exe and carries the Rostr icon -->
+    <AssemblyName>Rostr</AssemblyName>
+    <Product>Rostr</Product>
+    <ApplicationIcon>Assets\rostr.ico</ApplicationIcon>
+    <!-- Only English resource folders, keeps the exe smaller -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Lets the single-file exe carry WebView2's native loader -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WPF and Windows Forms share class names (Application, Button, Brushes...), so do not import Forms everywhere -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Logo shown in the sidebar, built into the exe -->
+    <Resource Include="Assets\logo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Encrypts saved account cookies with your Windows login (DPAPI) -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+    <!-- Embedded browser for the "Add account" login window -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
+  </ItemGroup>
+
+</Project>
