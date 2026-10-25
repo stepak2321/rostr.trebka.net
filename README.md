@@ -51,12 +51,8 @@ Rostr checks the [releases](https://github.com/stepak2321/rostr.trebka.net/relea
 
 Close Rostr and delete `Rostr.exe`. To remove your saved data too, delete the `%LocalAppData%\Rostr` folder.
 
-## Adding a language or a theme
-
-- **Language (app).** Add the code and name to `Codes` and `Names` in `Core/Loc.cs`, then one more `|text` column to each line of `Table`. Missing texts fall back to English.
-- **Language (website).** Add a new entry to the `T` object in the script at the bottom of `RostrWeb/index.html`.
-- **Theme.** Add a row of 15 colors to `Themes` in `Core/ThemeManager.cs`. The order of the colors is written above the table.
-
 ## Issues and feedback
 
 Found a bug or have an idea? Open an [issue](https://github.com/stepak2321/rostr.trebka.net/issues) on this repository.
+
+Would you like Rostr in another language, or with a theme you made up? Open an issue and tell us which one. Texts that are not translated yet stay in English until they are added.
