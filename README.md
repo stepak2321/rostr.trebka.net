@@ -23,7 +23,7 @@ You can also press Play on roblox.com. The game opens in Rostr first, so you can
 ## Features
 
 - **Server browser.** Every server lists its players, ping, FPS and region. Regions are detected automatically while the list loads. Sort by most or fewest players or best ping, and filter by region, minimum players or maximum ping. Colors show quality at a glance: green is smooth, amber is fine, red is trouble.
-- **Random server and Rejoin.** Join a random server in one click, or go back to your last one with Rejoin.
+- **Random server and Rejoin.** Join a random server in one click, or go back to your last one with Rejoin. If Roblox is still running (even only in the tray), Rostr closes it and starts a fresh session. Turn on Multi Roblox if you want to keep it open and run several.
 - **FPS cap and FastFlags.** Found in Settings > Performance. Set an FPS cap with the slider (30 to 360) or type a higher number. One-click FastFlag presets for low graphics, high quality and Direct3D 11. Raw FastFlags can be edited too, and Rostr tells you when Roblox will ignore a flag you saved. Two buttons next to the presets open the list of flags Roblox still allows (the official announcement and a community copy) in Chrome, or in your default browser if Chrome is not installed.
 - **Multiple accounts.** Add as many accounts as you like and switch from the sidebar. Saved logins are encrypted with your Windows login. Multi Roblox lets you run more than one client at once.
 - **Library and Friends.** Recent games and favorites with your playtime in each, private server links, and a view of who is online.
