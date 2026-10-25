@@ -24,7 +24,7 @@ You can also press Play on roblox.com. The game opens in Rostr first, so you can
 
 - **Server browser.** Every server lists its players, ping, FPS and region. Regions are detected automatically while the list loads. Sort by most or fewest players or best ping, and filter by region, minimum players or maximum ping. Colors show quality at a glance: green is smooth, amber is fine, red is trouble.
 - **Random server and Rejoin.** Join a random server in one click, or go back to your last one with Rejoin.
-- **FPS cap and FastFlags.** Found in Settings > Performance. Set an FPS cap with the slider (30 to 360) or type a higher number. One-click presets for FPS unlock, low graphics, max performance, high quality and less telemetry. Raw FastFlags can be edited too.
+- **FPS cap and FastFlags.** Found in Settings > Performance. Set an FPS cap with the slider (30 to 360) or type a higher number. One-click FastFlag presets for low graphics, high quality and Direct3D 11. Raw FastFlags can be edited too, and Rostr tells you when Roblox will ignore a flag you saved. Two buttons next to the presets open the list of flags Roblox still allows (the official announcement and a community copy) in Chrome, or in your default browser if Chrome is not installed.
 - **Multiple accounts.** Add as many accounts as you like and switch from the sidebar. Saved logins are encrypted with your Windows login. Multi Roblox lets you run more than one client at once.
 - **Library and Friends.** Recent games and favorites with your playtime in each, private server links, and a view of who is online.
 - **In-game overlay.** A small click-through box in the corner of the Roblox window, shown only while Roblox is in front. Choose which lines it shows in Settings > Overlay: ping, CPU, RAM, session time, region and account name. You can also pick the corner it sits in and preview it. The default hide and show hotkey is `Ctrl` + `Shift` + `O`, and you can change it.
@@ -33,7 +33,7 @@ You can also press Play on roblox.com. The game opens in Rostr first, so you can
 - **Themes.** Dark, Midnight, AMOLED, Ocean, Forest, Sunset, Rose and Light. Pick one in Settings > Appearance. They repaint the app instantly, no restart.
 - **Client management.** Rostr installs the Roblox client for you and removes old versions so they do not pile up on your disk. Settings > Storage shows how much space Rostr uses and has a Clean now button.
 - **Organized settings.** Settings has a tab list on the left: About, Performance, Overlay, General, Appearance, Discord and Storage, so every option is easy to find.
-- **README and change log inside the app.** The **Open README** button in the sidebar shows this page without opening a browser. When an update is available, **See change log** shows what is new in that version before you install it.
+- **README, website and change log.** The **Open README** button in the sidebar shows this page without opening a browser, and the **Open web** button below it opens the Rostr website. When an update is available, **See change log** shows what is new in that version before you install it.
 - **Self-update.** Rostr checks GitHub for a new release, shows what changed, and installs it for you after you confirm. The download is checked against its SHA-256 first.
 
 ## Updates
@@ -42,6 +42,7 @@ Rostr checks the [releases](https://github.com/stepak2321/rostr.trebka.net/relea
 
 ## Good to know
 
+- Since 29 September 2025 Roblox only reads a short allowlist of FastFlags from `ClientAppSettings.json` and silently ignores all others. Rostr's presets only use flags from that list, but Roblox can change the list at any time, so a preset can stop working after a Roblox update. The FPS limit is not a FastFlag: use the FPS cap in Settings > Performance.
 - A ping marked with a tilde (`~`) is an estimate. Roblox servers do not answer ping, so Rostr measures the last router on the way instead.
 - Rostr keeps its data in `%LocalAppData%\Rostr`: your saved accounts (encrypted), settings, FastFlag overrides and log files.
 - To catch Play on roblox.com, Rostr registers itself for `roblox-player:` links for your Windows user only. It saves the original handler the first time so it can be restored.
