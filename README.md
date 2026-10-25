@@ -56,3 +56,9 @@ Close Rostr and delete `Rostr.exe`. To remove your saved data too, delete the `%
 Found a bug or have an idea? Open an [issue](https://github.com/stepak2321/rostr.trebka.net/issues) on this repository.
 
 Would you like Rostr in another language, or with a theme you made up? Open an issue and tell us which one. Texts that are not translated yet stay in English until they are added.
+
+## License
+
+Rostr is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2026 stepak2321
