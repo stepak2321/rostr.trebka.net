@@ -7,1144 +7,328 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#12141B">
-<title>Rostr: a Roblox launcher that shows you the server first</title>
-<meta name="description" content="Rostr is a Windows launcher for Roblox with a server browser, auto region detection, an in-game overlay, Discord status, FPS cap and FastFlag presets, themes and self-update.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap">
-<script>try{var m=localStorage.getItem("rostr-mode");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-mode",m)}catch(e){}</script>
+<meta name="theme-color" content="#0F1117">
+<title>Rostr: see the server before you join it</title>
+<meta name="description" content="Rostr is a Windows launcher for Roblox. See every server's players, ping, FPS and region before you join, hop to a new one, follow player counts on Trending, and use the dim menu, stats overlay, gallery and Discord status.">
 <style>
+/* Colours are the same ones the app uses (Core/ThemeManager.cs). The theme buttons below swap them live. */
 :root{
-  --bg:#F3F5FA; --surface:#FFFFFF; --ink:#12151F; --muted:#586078; --line:#DDE2EE;
-  --accent:#3D6BFF; --accent-ink:#FFFFFF; --good:#1E9E63; --warn:#B7791F; --bad:#D03C3C;
-  --ed-bg:#FFFFFF; --ed-head:#EBEBEB; --ed-tabs:#F6F5F4; --ed-line:#D8D8DC; --ed-gutter:#9A9996; --ed-sel:#CFE0FF;
-  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
-  --body:system-ui,"Segoe UI",Roboto,sans-serif;
-  box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px);
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-mode="light"]){
-    --bg:#0D0F15; --surface:#151822; --ink:#E8EAF2; --muted:#8A92A8; --line:#232838;
-    --accent:#5B83FF; --accent-ink:#0B1020; --good:#3DD68C; --warn:#F5B83D; --bad:#F25C5C;
-    --ed-bg:#1E1E1E; --ed-head:#303030; --ed-tabs:#262626; --ed-line:#3A3A3A; --ed-gutter:#6F6F6F; --ed-sel:#2C4A8F;
-    color-scheme:dark;
-  }
-}
-:root[data-mode="dark"]{
-  --bg:#0D0F15; --surface:#151822; --ink:#E8EAF2; --muted:#8A92A8; --line:#232838;
-  --accent:#5B83FF; --accent-ink:#0B1020; --good:#3DD68C; --warn:#F5B83D; --bad:#F25C5C;
-  --ed-bg:#1E1E1E; --ed-head:#303030; --ed-tabs:#262626; --ed-line:#3A3A3A; --ed-gutter:#6F6F6F; --ed-sel:#2C4A8F;
-  color-scheme:dark;
+  --bg:#0F1117;--bg2:#12141B;--card:#171A22;--edge:#1F2432;--line:#232838;--dim:#262B38;--track:#2A3040;
+  --faint:#5C6377;--muted:#7C8499;--soft:#9AA1B5;--text2:#C9CEDC;--text:#E6E8EE;--accent:#3D6BFF;--accentbg:#1B2547;
+  --good:#3DD68C;--warn:#F5B83D;--bad:#F25C5C;
+  --font:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  color-scheme:dark;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
 *,*::before,*::after{box-sizing:inherit}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 var(--font);-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
 a{color:inherit}
-:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
-.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
-h1,h2,h3{font-family:var(--display);line-height:1.08;margin:0;letter-spacing:-.02em}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 22px}
+h1,h2,h3{margin:0;line-height:1.12;letter-spacing:-.02em}
+.muted{color:var(--muted)}
 
-/* header */
-header{display:flex;align-items:center;gap:24px;padding:20px 0}
-.brand{display:flex;align-items:center;gap:10px;font:800 22px var(--display);text-decoration:none}
-.mark{width:36px;height:36px;border-radius:10px;background:#12141B;color:#fff;display:grid;place-items:center;font:800 20px var(--display);box-shadow:0 0 0 1px var(--line)}
-nav{margin-left:auto;display:flex;gap:22px;font-size:15px}
-nav a{text-decoration:none;color:var(--muted)}
-nav a:hover{color:var(--ink)}
-nav a.nav-dl{background:var(--accent);color:var(--accent-ink);font-weight:700;padding:8px 16px;border-radius:10px}
-nav a.nav-dl:hover{color:var(--accent-ink);filter:brightness(1.08)}
+/* top bar, like the app's sidebar header */
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg2) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;gap:22px;height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;text-decoration:none}
+.brand img,.mark{width:32px;height:32px;border-radius:9px}
+.mark{display:grid;place-items:center;background:var(--accent);color:#fff;font-weight:800}
+nav{margin-left:auto;display:flex;align-items:center;gap:6px}
+nav a{padding:7px 12px;border-radius:9px;color:var(--soft);text-decoration:none;font-size:14px;font-weight:600}
+nav a:hover{background:var(--dim);color:var(--text)}
+nav a.dl{background:var(--accent);color:#fff;margin-left:6px}
+nav a.dl:hover{filter:brightness(1.1)}
 
-.btn{appearance:none;border:0;cursor:pointer;font:700 16px var(--body);padding:14px 26px;border-radius:12px;background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;gap:10px}
-.btn:hover{filter:brightness(1.08)}
-.btn.small{padding:9px 16px;font-size:14px;border-radius:10px}
-.btn svg{width:18px;height:18px}
+.btn{display:inline-flex;align-items:center;gap:9px;border:0;cursor:pointer;font:600 15px var(--font);padding:13px 24px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:var(--dim);color:var(--text)}
+.btn.ghost:hover{background:var(--track);filter:none}
+.btn svg{width:17px;height:17px}
 
 /* hero */
-.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:56px;align-items:center;padding:56px 0 88px}
-.hero h1{font-size:clamp(40px,5.6vw,68px);font-weight:800}
-.hero p.lead{font-size:19px;color:var(--muted);max-width:30em;margin:22px 0 30px}
-.cta-row{display:flex;flex-wrap:wrap;align-items:center;gap:16px}
-.note{font-size:14px;color:var(--muted)}
-.os-switch{color:var(--accent);text-underline-offset:3px}
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:48px;align-items:center;padding:64px 0 80px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--soft);background:var(--card);border:1px solid var(--line);padding:5px 12px;border-radius:999px}
+.eyebrow i{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 25%,transparent)}
+.hero h1{font-size:clamp(38px,5.4vw,60px);font-weight:800;margin:18px 0 0}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.lead{font-size:18px;color:var(--soft);margin:18px 0 28px;max-width:28em}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.small{font-size:13px;color:var(--muted);margin-top:14px}
 
-/* app mock: always dark, it is a picture of the app */
-.win{background:#0F1117;border:1px solid #262B38;border-radius:14px;overflow:hidden;color:#E6E8EE;box-shadow:0 30px 70px -30px rgba(10,20,60,.55);font-size:13px}
-.win .bar{display:flex;gap:7px;padding:11px 14px;background:#12141B;border-bottom:1px solid #1F2432}
-.win .bar i{width:10px;height:10px;border-radius:50%;background:#2A3040}
-.win .body{display:grid;grid-template-columns:132px 1fr}
-.win .side{background:#12141B;padding:14px 10px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:#9AA1B5}
-.win .side b{padding:7px 10px;border-radius:8px;font-weight:600}
-.win .side b.on{background:#232838;color:#fff}
-.win .main{padding:16px}
-.win .tools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.chip{padding:5px 10px;border-radius:7px;background:#262B38;font-size:11px;color:#C9CEDC}
-.chip.on{background:#3D6BFF;color:#fff}
-.srv-h,.srv{display:grid;grid-template-columns:1.1fr .8fr .8fr 1.5fr auto;gap:8px;align-items:center}
-.srv-h{font-size:10px;color:#7C8499;padding:0 12px 6px;font-weight:600}
-.srv{background:#171A22;border-radius:9px;padding:8px 12px;margin-bottom:6px;border-left:3px solid var(--c)}
-.srv .p{font-weight:700;color:var(--c)}
-.srv .r{color:#9AA1B5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.join{background:#3D6BFF;color:#fff;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:600}
+/* the app window picture */
+.win{background:var(--bg);border:1px solid var(--edge);border-radius:14px;overflow:hidden;box-shadow:0 30px 70px -30px #000a;font-size:12.5px}
+.bar{display:flex;gap:7px;padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--edge)}
+.bar i{width:10px;height:10px;border-radius:50%;background:var(--track)}
+.app{display:grid;grid-template-columns:128px 1fr}
+.side{background:var(--bg2);padding:12px 8px;display:flex;flex-direction:column;gap:3px;border-right:1px solid var(--edge)}
+.side b{padding:8px 11px;border-radius:8px;font-weight:600;color:var(--soft)}
+.side b.on{background:var(--dim);color:var(--text)}
+.side .gap{flex:1;min-height:30px}
+.main{padding:16px}
+.main h4{margin:0;font-size:20px}
+.main p{margin:2px 0 12px;color:var(--muted);font-size:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{padding:5px 10px;border-radius:7px;background:var(--dim);color:var(--text2);font-size:11px}
+.chip.on{background:var(--accent);color:#fff}
+.srv{display:grid;grid-template-columns:1fr .7fr .7fr 1.5fr auto;gap:8px;align-items:center;background:var(--card);border-left:3px solid var(--c);border-radius:8px;padding:8px 12px;margin-bottom:6px}
+.srv b{color:var(--c)}
+.srv span{color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srv u{text-decoration:none;background:var(--accent);color:#fff;border-radius:6px;padding:4px 11px;font-size:11px;font-weight:600}
 
 /* sections */
-section{padding:84px 0;border-top:1px solid var(--line)}
-.split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:64px;align-items:start}
-.split h2{font-size:clamp(30px,3.6vw,44px);font-weight:800;position:sticky;top:24px}
-.split .intro{color:var(--muted);margin:16px 0 0;max-width:24em}
-.item{padding:22px 0;border-bottom:1px solid var(--line)}
-.item:first-child{padding-top:0}
-.item:last-child{border-bottom:0}
-.item h3{font-size:21px;font-weight:700;letter-spacing:-.01em}
-.item p{margin:8px 0 0;color:var(--muted);max-width:36em}
+section{padding:76px 0;border-top:1px solid var(--line)}
+.head{max-width:34em;margin-bottom:34px}
+.head h2{font-size:clamp(28px,3.4vw,40px);font-weight:800}
+.head p{color:var(--soft);margin:12px 0 0;font-size:16px}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--accent);background:var(--accentbg);padding:3px 9px;border-radius:6px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--edge);border-radius:14px;padding:20px}
+.card h3{font-size:17px;font-weight:700}
+.card p{margin:8px 0 0;color:var(--soft);font-size:14px}
+.card .ic{width:36px;height:36px;border-radius:10px;background:var(--accentbg);color:var(--accent);display:grid;place-items:center;margin-bottom:14px}
+.ic svg{width:19px;height:19px}
+.card.new{border-color:color-mix(in srgb,var(--accent) 55%,var(--edge))}
+.card .new-b{float:right;font-size:10px;font-weight:700;letter-spacing:.06em;background:var(--accent);color:#fff;padding:2px 7px;border-radius:5px}
 
-/* overlay */
-.ov{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:center}
-.ov h2{font-size:clamp(30px,3.6vw,44px);font-weight:800}
-.ov p{color:var(--muted);max-width:30em}
-kbd{font:600 13px var(--body);background:var(--surface);border:1px solid var(--line);border-bottom-width:3px;border-radius:7px;padding:2px 8px}
-.stage{background:linear-gradient(135deg,#1c2a52,#0f1117 70%);border-radius:18px;min-height:300px;position:relative;border:1px solid var(--line)}
-.ovbox{position:absolute;right:18px;bottom:18px;background:rgba(15,17,23,.88);border:1px solid #2A3040;border-radius:10px;padding:10px 14px;min-width:200px;color:#fff;font-size:13px}
-.ovbox div{display:flex;justify-content:space-between;gap:24px;padding:2px 0}
-.ovbox span{color:#7C8499;font-size:11px}
-.ovbox b{font-weight:600}
-.toggles{list-style:none;padding:0;margin:20px 0 0;display:flex;flex-wrap:wrap;gap:8px}
-.toggles li{padding:6px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:14px}
+/* trending picture */
+.tr{display:grid;grid-template-columns:230px 1fr;gap:12px}
+.games{background:var(--card);border-radius:12px;padding:6px}
+.g{display:flex;align-items:center;gap:10px;padding:8px 9px;border-radius:9px}
+.g.on{background:var(--dim)}
+.g i{width:30px;height:30px;border-radius:8px;flex:none;background:linear-gradient(135deg,var(--a),var(--b))}
+.g b{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g span{font-size:11px;color:var(--muted)}
+.graph{background:var(--card);border-radius:12px;padding:16px}
+.graph h4{margin:0;font-size:17px}
+.stats{display:flex;gap:26px;margin:10px 0 6px}
+.stats small{display:block;font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.06em}
+.stats b{font-size:18px}
+.graph svg{width:100%;height:auto;display:block}
+.graph .rng{display:flex;gap:4px;float:right}
+
+/* requests */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.langs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 16px}
+.langs span{padding:6px 12px;border-radius:8px;background:var(--dim);font-size:13px}
+.langs span.on{background:var(--accent);color:#fff}
+
+/* themes */
+.themes{display:flex;flex-wrap:wrap;gap:8px}
+.themes button{appearance:none;cursor:pointer;display:inline-flex;align-items:center;gap:9px;font:600 14px var(--font);color:var(--text);background:var(--dim);border:1px solid transparent;padding:9px 14px;border-radius:10px}
+.themes button:hover{background:var(--track)}
+.themes button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.themes i{width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,var(--s1) 55%,var(--s2) 55%);box-shadow:0 0 0 1px #fff3}
 
 /* download */
-.dl{text-align:center}
-.dl h2{font-size:clamp(32px,4.2vw,52px);font-weight:800}
-.dl p{color:var(--muted);margin:14px auto 28px;max-width:28em}
-.dl .btn{font-size:18px;padding:16px 32px}
+.dlbox{text-align:center;background:var(--card);border:1px solid var(--edge);border-radius:18px;padding:52px 24px}
+.dlbox h2{font-size:clamp(28px,3.6vw,42px);font-weight:800}
+.dlbox p{color:var(--soft);margin:12px auto 24px;max-width:30em}
+.dlbox .row{justify-content:center}
+.pill{display:inline-flex;gap:8px;align-items:center;font-size:13px;color:var(--soft);background:var(--bg);border:1px solid var(--line);padding:6px 13px;border-radius:999px;margin-top:20px}
+.pill b{color:var(--text)}
+footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);font-size:13px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:10px 28px;justify-content:space-between}
+footer a{color:var(--soft)}
 
-.about{max-width:42em}
-.about p{color:var(--muted)}
-footer{border-top:1px solid var(--line);padding:28px 0 40px;font-size:14px;color:var(--muted)}
-footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-between}
-
-@media (max-width:860px){
-  nav a:not(.nav-dl){display:none}
-  header{justify-content:space-between}
-  .hero,.split,.ov{grid-template-columns:minmax(0,1fr);gap:36px}
-  .hero{padding:32px 0 60px}
-  .split h2{position:static}
-  section{padding:60px 0}
-  .win .body{grid-template-columns:1fr}
-  .win .side{display:none}
+@media (max-width:900px){
+  .hero{grid-template-columns:minmax(0,1fr);gap:36px;padding:40px 0 56px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tr,.two{grid-template-columns:minmax(0,1fr)}
 }
-@media (max-width:520px){
-  .srv-h,.srv{grid-template-columns:1fr .9fr .9fr 1.4fr auto}
+@media (max-width:620px){
+  nav a:not(.dl){display:none}
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .app{grid-template-columns:minmax(0,1fr)}.side{display:none}
+  section{padding:56px 0}
 }
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-.lang{background:#171A22;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:600 14px var(--body);cursor:pointer}
-@media (max-width:700px){nav{flex-wrap:wrap;gap:10px}}
-
-.lang{background:var(--surface)}
-.mode-btn{appearance:none;cursor:pointer;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-grid;place-items:center;padding:0}
-.mode-btn:hover{border-color:var(--accent)}
-.mode-btn svg{width:18px;height:18px}
-.mode-btn .i-sun{display:none}
-:root[data-mode="dark"] .mode-btn .i-sun{display:block}
-:root[data-mode="dark"] .mode-btn .i-moon{display:none}
-@media (prefers-color-scheme:dark){
-  :root:not([data-mode="light"]) .mode-btn .i-sun{display:block}
-  :root:not([data-mode="light"]) .mode-btn .i-moon{display:none}
-}
-.dc{background:#171A22;border:1px solid var(--line);border-radius:16px;padding:16px;max-width:360px;font-family:var(--body)}
-.dc small{display:block;color:#7C8499;font-size:11px;font-weight:700;letter-spacing:.04em;margin-bottom:10px}
-.dc .row{display:flex;gap:12px}
-.dc .art{width:64px;height:64px;border-radius:10px;background:linear-gradient(135deg,#3D6BFF,#8B5CF6);display:grid;place-items:center;font:800 28px var(--display);color:#fff;flex:none;position:relative}
-.dc .art i{position:absolute;right:-5px;bottom:-5px;width:22px;height:22px;border-radius:50%;background:#0F1117;border:3px solid #171A22;display:grid;place-items:center;font:800 11px var(--display);color:#3D6BFF;font-style:normal}
-.dc b{display:block;font-size:14px}.dc span{display:block;font-size:13px;color:#C9CEDC;margin-top:2px}
-.dc .t{color:#3DD68C}
-.dc .bt{display:grid;gap:6px;margin-top:12px}.dc .bt em{font-style:normal;text-align:center;font-weight:600;font-size:13px;background:#262B38;border-radius:8px;padding:7px}
-
-/* newest version + the two buttons */
-.rel{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:22px}
-.dl .rel{justify-content:center;margin-top:20px}
-.pill{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);padding:7px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
-.pill[hidden]{display:none}
-.pill b{color:var(--ink);font-weight:700}
-.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 25%,transparent)}
-.gbtn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font:600 14px var(--body);padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
-.gbtn:hover{border-color:var(--accent)}
-.gbtn svg{width:16px;height:16px;flex:none}
-
-/* settings mock + themes */
-.win.set .body{grid-template-columns:150px 1fr}
-.win .card{background:#171A22;border-radius:10px;padding:14px 16px}
-.win .card h4{margin:0 0 6px;font:700 14px var(--display)}
-.win .row2{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid #232838}
-.win .row2:first-of-type{border-top:0}
-.win .row2 b{display:block;font-size:13px;font-weight:600}
-.win .row2 span{display:block;font-size:11px;color:#7C8499;margin-top:2px}
-.sw{flex:none;width:36px;height:20px;border-radius:999px;background:#2A3040;position:relative}
-.sw::after{content:"";position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#fff}
-.sw.on{background:#3D6BFF}.sw.on::after{left:19px}
-.swatches li{display:flex;align-items:center;gap:8px}
-.swatches i{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--b) 55%,var(--a) 55%);box-shadow:0 0 0 1px var(--line)}
-@media (max-width:860px){.win.set .side{display:flex}.win.set .body{grid-template-columns:108px 1fr}}
-
-/* README / change log window (looks like a Linux text editor) */
-.ed-backdrop{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(8,10,16,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
-  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.ed-backdrop[hidden]{display:none}
-.ed-win{width:min(940px,100%);height:min(82vh,760px);display:flex;flex-direction:column;background:var(--ed-bg);color:var(--ink);border-radius:14px;overflow:hidden;
-  border:1px solid var(--ed-line);box-shadow:0 40px 90px -20px rgba(0,0,0,.6)}
-.ed-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:8px 10px;background:var(--ed-head);border-bottom:1px solid var(--ed-line)}
-.ed-title{text-align:center;line-height:1.2}
-.ed-title b{display:block;font:700 14px var(--body)}
-.ed-title span{display:block;font-size:11px;color:var(--muted)}
-.ed-close{justify-self:end;width:28px;height:28px;border-radius:50%;border:0;cursor:pointer;background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink);font:400 18px/1 var(--body);display:grid;place-items:center}
-.ed-close:hover{background:color-mix(in srgb,var(--ink) 20%,transparent)}
-.ed-tabs{display:flex;gap:2px;padding:6px 8px 0;background:var(--ed-tabs);border-bottom:1px solid var(--ed-line)}
-.ed-tab{appearance:none;border:0;cursor:pointer;font:600 13px var(--body);color:var(--muted);background:transparent;padding:8px 16px;border-radius:8px 8px 0 0;display:inline-flex;align-items:center;gap:8px}
-.ed-tab:hover{color:var(--ink)}
-.ed-tab[aria-selected="true"]{background:var(--ed-bg);color:var(--ink);box-shadow:inset 0 2px 0 var(--accent)}
-.ed-tab svg{width:14px;height:14px}
-.ed-code{flex:1;overflow:auto;margin:0;padding:10px 0;background:var(--ed-bg);font:13.5px/1.65 "JetBrains Mono","Cascadia Mono",Consolas,"DejaVu Sans Mono",Menlo,monospace;tab-size:4;outline:0}
-.ed-code .l{display:flex}
-.ed-code .l:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
-.ed-code .n{flex:none;width:3.6em;padding-right:1.1em;text-align:right;color:var(--ed-gutter);user-select:none;-webkit-user-select:none}
-.ed-code .t{flex:1;min-width:0;padding-right:20px;white-space:pre-wrap;overflow-wrap:anywhere;min-height:1.65em}
-.ed-code .h{color:var(--accent);font-weight:700}
-.ed-code .m{color:var(--warn);font-weight:700}
-.ed-code .b{font-weight:700}
-.ed-code .c{color:var(--good)}
-.ed-code .q{color:var(--muted);font-style:italic}
-.ed-code a.u{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
-.ed-code ::selection{background:var(--ed-sel)}
-.ed-code .msg{padding:18px 24px;color:var(--muted);font-family:var(--body);font-size:14px}
-.ed-mode{margin-left:auto;display:flex;align-self:center;padding:0 4px 6px}
-.ed-mode button{appearance:none;cursor:pointer;font:600 12px var(--body);color:var(--muted);background:transparent;border:1px solid var(--ed-line);padding:4px 12px}
-.ed-mode button+button{margin-left:-1px}
-.ed-mode button:first-child{border-radius:7px 0 0 7px}
-.ed-mode button:last-child{border-radius:0 7px 7px 0}
-.ed-mode button:hover{color:var(--ink)}
-.ed-mode button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);position:relative}
-/* Preview: the Markdown shown as a real page */
-.ed-code.pv{padding:0;font:15px/1.65 var(--body)}
-.md{max-width:800px;padding:22px 30px 44px;overflow-wrap:anywhere}
-.md>:first-child{margin-top:0}
-.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{font-family:var(--display);line-height:1.2;margin:1.5em 0 .5em;letter-spacing:-.01em}
-.md h1{font-size:30px;padding-bottom:.3em;border-bottom:1px solid var(--ed-line)}
-.md h2{font-size:23px;padding-bottom:.25em;border-bottom:1px solid var(--ed-line)}
-.md h3{font-size:18px}.md h4{font-size:16px}.md h5,.md h6{font-size:14px;color:var(--muted)}
-.md p{margin:0 0 1em}
-.md ul,.md ol{margin:0 0 1em;padding-left:1.6em}.md li{margin:.28em 0}.md li>ul,.md li>ol{margin:.28em 0 0}
-.md a{color:var(--accent);text-underline-offset:2px}
-.md code{font:.88em "JetBrains Mono","Cascadia Mono",Consolas,"DejaVu Sans Mono",Menlo,monospace;background:color-mix(in srgb,var(--ink) 9%,transparent);padding:.15em .4em;border-radius:5px}
-.md pre{margin:0 0 1em;padding:12px 14px;overflow:auto;background:color-mix(in srgb,var(--ink) 7%,transparent);border-radius:8px;line-height:1.5}
-.md pre code{background:none;padding:0;font-size:13px}
-.md blockquote{margin:0 0 1em;padding:.1em 1em;border-left:4px solid var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
-.md blockquote p:last-child{margin-bottom:.6em}.md blockquote p:first-child{margin-top:.6em}
-.md hr{border:0;border-top:1px solid var(--ed-line);margin:1.6em 0}
-.md table{border-collapse:collapse;margin:0 0 1em;display:block;overflow:auto}
-.md th,.md td{border:1px solid var(--ed-line);padding:6px 12px;text-align:left}
-.md th{background:color-mix(in srgb,var(--ink) 6%,transparent)}
-.ed-status{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:center;padding:6px 14px;background:var(--ed-head);border-top:1px solid var(--ed-line);font-size:12px;color:var(--muted)}
-.ed-status a{margin-left:auto;color:var(--accent);text-decoration:none;font-weight:600}
-.ed-status a:hover{text-decoration:underline}
-@media (prefers-reduced-motion:no-preference){.ed-backdrop:not([hidden]) .ed-win{animation:edIn .16s ease-out}@keyframes edIn{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}}
-@media (max-width:640px){.ed-backdrop{padding:0}.ed-win{height:100%;border-radius:0;border:0}.ed-code{font-size:12.5px}.ed-code.pv{font-size:15px}.md{padding:18px 18px 36px}.ed-code .n{width:2.8em;padding-right:.7em}.ed-status a{margin-left:0}.ed-tabs{flex-wrap:wrap}.ed-tab{padding:8px 10px}}
-
-/* interactive mocks: every colour comes from --w* so a theme can repaint them */
-.win{--wbg:#0F1117;--wbg2:#12141B;--wcard:#171A22;--wline:#232838;--wdim:#262B38;--wmuted:#7C8499;--wsoft:#9AA1B5;--wtext2:#C9CEDC;--wtext:#E6E8EE;--wacc:#3D6BFF;--wai:#fff;background:var(--wbg);border-color:var(--wdim);color:var(--wtext);transition:background .2s,color .2s}
-.win .bar,.win .side{background:var(--wbg2)}.win .bar{border-color:var(--wline)}.win .bar i{background:var(--wdim)}
-.win .side{color:var(--wsoft)}.win .side b,.win .side button{padding:7px 10px;border-radius:8px;font:600 12px var(--body);text-align:left;border:0;background:transparent;color:inherit}
-.win .side button{cursor:pointer}.win .side button:hover:not(.on){color:var(--wtext)}.win .side b[aria-disabled]{cursor:default}
-.win .side b.on,.win .side button.on{background:var(--wline);color:var(--wtext)}
-.win .chip{background:var(--wdim);color:var(--wtext2)}.win .chip.on{background:var(--wacc);color:var(--wai)}
-.win .srv,.win .card{background:var(--wcard)}.win .srv-h,.win .row2 span{color:var(--wmuted)}.win .srv .r{color:var(--wsoft)}
-.win .join{background:var(--wacc);color:var(--wai)}.win .row2{border-color:var(--wline)}
-.win .sw{background:var(--wdim);cursor:pointer}.win .sw.on{background:var(--wacc)}
-.win .main{min-height:318px}.pg[hidden]{display:none}
-.pgh{font:700 17px var(--display);margin:0 0 3px}.pgs{font-size:11px;color:var(--wmuted);margin:0 0 10px}
-.stats{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:4px 26px;background:var(--wcard);border-radius:10px;padding:10px 14px;margin-bottom:12px}
-.stats small,.cap{font-size:9.5px;font-weight:600;color:var(--wmuted);letter-spacing:.03em}.stats b{font-size:14px}
-.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px}.cap{display:block;margin:0 0 6px 2px}
-.lc,.fc{background:var(--wcard);border-radius:10px;padding:9px;display:flex;gap:10px;margin-bottom:6px;align-items:center}.lc{align-items:flex-start}
-.ic{width:40px;height:40px;border-radius:9px;flex:none;display:grid;place-items:center;font:800 16px var(--display);color:#fff}
-.lc b,.fc b{display:block;font-size:12px}.lc span,.fc span{display:block;font-size:10.5px;color:var(--wmuted);margin-top:1px}.lc span.pt{color:#8FA8FF}
-.lc .bt2{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
-.lb{border:0;border-radius:6px;padding:4px 9px;font:600 10.5px var(--body);color:#fff;background:var(--wdim);cursor:pointer}.lb.g{background:#2FBF71}
-.fc .av{width:34px;height:34px;border-radius:50%;flex:none;position:relative;display:grid;place-items:center;font:800 13px var(--display);color:#fff}
-.fc .av i{position:absolute;right:-2px;bottom:-2px;width:11px;height:11px;border-radius:50%;background:var(--s);border:2px solid var(--wcard)}
-.fc>div:nth-child(2){flex:1;min-width:0}.fc .lb[disabled]{opacity:.4;cursor:default}
-.ftools{display:flex;gap:6px;align-items:center;margin-bottom:10px;font-size:10.5px;color:var(--wmuted)}.ftools .lb{padding:5px 10px}
-.mt{display:flex;flex-wrap:wrap;gap:8px;padding-top:10px}
-.mt button{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;background:linear-gradient(135deg,var(--b) 55%,var(--a) 55%);box-shadow:0 0 0 1px var(--wline)}
-.mt button[aria-pressed=true]{border-color:var(--wtext)}
-.swatches li{padding:0;border:0;background:none}
-.tbtn{appearance:none;display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
-.tbtn:hover{border-color:var(--accent)}.tbtn[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
-/* Discord "Playing" card, laid out like Discord's own profile card */
-.dx{width:min(100%,340px);background:#111214;border-radius:12px;padding:16px;font:14px/1.3 "gg sans","Noto Sans",system-ui,sans-serif;color:#f2f3f5;box-shadow:0 8px 24px rgba(0,0,0,.4)}
-.dx h5{margin:0 0 12px;font:700 12px/1 "gg sans","Noto Sans",system-ui,sans-serif;color:#f2f3f5}
-.dx .row{display:flex;gap:12px;align-items:center}.dx .big{width:60px;height:60px;border-radius:8px;flex:none;position:relative;display:grid;place-items:center;font:800 26px var(--display);color:#fff;background:#12141B}
-.dx .big img{width:100%;height:100%;border-radius:8px;display:block}.dx .sm{position:absolute;right:-6px;bottom:-6px;width:24px;height:24px;border-radius:50%;border:3px solid #111214;background:#12141B;overflow:hidden}.dx .sm img{width:100%;height:100%;display:block}
-.dx .t b{display:block;font-size:14px;font-weight:600}.dx .t span{display:block;font-size:12px;color:#dbdee1;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dx .t .el{color:#23a559}
-.dx .bts{display:grid;gap:8px;margin-top:14px}.dx .bts a{display:block;text-align:center;background:#4e5058;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:7px;border-radius:3px;cursor:default}
-.seg{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:16px}
-.seg button{appearance:none;border:1px solid #2A3040;background:rgba(15,17,23,.6);color:#C9CEDC;font:600 12px var(--body);padding:6px 12px;border-radius:999px;cursor:pointer}
-.seg button[aria-pressed=true]{background:#3D6BFF;border-color:#3D6BFF;color:#fff}
-@media (max-width:860px){.win:not(.set) .side{display:flex;flex-direction:row;flex-wrap:wrap;padding:10px}}
-.dx .big .gi{position:absolute;inset:0}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}body{transition:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
+<header>
+  <div class="wrap">
     <a class="brand" href="#top"><span class="mark">R</span>Rostr</a>
     <nav aria-label="Main">
-      <a href="#download" class="nav-dl" data-i18n="navDl">Download</a>
-      <a href="#features" data-i18n="navFeat">Features</a>
-      <a href="#overlay" data-i18n="navOv">Overlay</a>
-      <a href="#about" data-i18n="navAbout">About</a>
-      <select class="lang" id="lang" aria-label="Language"></select>
-      <button type="button" class="mode-btn" id="modebtn" aria-label="Switch to dark mode" title="Switch theme">
-        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-      </button>
+      <a href="#features">Features</a>
+      <a href="#trending">Trending</a>
+      <a href="#requests">Requests</a>
+      <a href="#themes">Themes</a>
+      <a class="dl" href="#download">Download</a>
     </nav>
-  </header>
+  </div>
+</header>
 
-  <main id="top">
+<main id="top">
+  <div class="wrap">
     <div class="hero">
       <div>
-        <h1 data-i18n="h1">See the server before you join it.</h1>
-        <p data-i18n="lead" class="lead">Rostr is a launcher for Roblox on <span class="os-name">Windows</span>. Browse servers by ping, FPS and region, jump into a random one with a single click, and keep an eye on your game with a small in-game overlay.</p>
-        <div class="cta-row">
-          <button type="button" class="btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14"/></svg><span data-i18n="dlFor">Download for <span class="os-name">Windows</span></span>
-          </button>
-          <span class="note"><span id="os-note">Windows 10 and 11</span> · <a href="#" id="os-switch" class="os-switch">Switch to Linux</a></span>
+        <span class="eyebrow"><i></i>Windows launcher for Roblox</span>
+        <h1>See the server <em>before</em> you join it.</h1>
+        <p class="lead">Every server’s players, ping, FPS and region up front. Hop to a new one in a click, follow what is trending, and keep an eye on your game with small overlays.</p>
+        <div class="row">
+          <a class="btn dl-link" href="https://github.com/stepak2321/rostr.trebka.net/releases/latest/download/Rostr.exe">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14"/></svg>Download for Windows</a>
+          <a class="btn ghost" href="https://github.com/stepak2321/rostr.trebka.net#readme">Read the README</a>
         </div>
-
-        <div class="rel">
-          <span class="pill"><span class="dot" aria-hidden="true"></span><span data-i18n="verLabel">Newest version</span> <b class="ver-text">…</b></span>
-          <a class="gbtn" href="https://github.com/stepak2321/rostr.trebka.net/releases/latest" data-open="log">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="btnLog">See newest changelog</span></a>
-          <a class="gbtn" href="https://github.com/stepak2321/rostr.trebka.net#readme" data-open="readme">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg><span data-i18n="btnReadme">Open README</span></a>
-        </div>
+        <p class="small">Windows 10 (2004) or later, or Windows 11, 64-bit. Nothing to install. Free and open source.</p>
       </div>
 
-      <div class="win" role="group" aria-label="The Rostr app. Use the menu on the left to switch between Play, Library and Friends.">
+      <div class="win" role="img" aria-label="The Rostr app showing a list of servers with players, ping, FPS and region">
         <div class="bar"><i></i><i></i><i></i></div>
-        <div class="body">
-          <div class="side"><button class="on" type="button" data-page="play">Play</button><button type="button" data-page="library">Library</button><button type="button" data-page="friends">Friends</button><b aria-disabled="true">Settings</b><b aria-disabled="true">Open README</b></div>
+        <div class="app">
+          <div class="side"><b class="on">Play</b><b>Library</b><b>Friends</b><b>Gallery</b><b>Trending</b><span class="gap"></span><b>Settings</b><b>Open README</b></div>
           <div class="main">
-            <div class="pg" data-pg="play">
-            <div class="tools"><span class="chip on">Most players</span><span class="chip">Fewest players</span><span class="chip">Best ping</span><span class="chip">Region: all</span></div>
-            <div class="srv-h"><span>PLAYERS</span><span>PING</span><span>FPS</span><span>REGION</span><span></span></div>
-            <div class="srv" style="--c:#3DD68C"><span>38 / 40</span><span class="p">67 ms</span><span>59 fps</span><span class="r">Frankfurt am Main, DE</span><span class="join">Join</span></div>
-            <div class="srv" style="--c:#3DD68C"><span>36 / 40</span><span class="p">74 ms</span><span>52 fps</span><span class="r">London, England, GB</span><span class="join">Join</span></div>
-            <div class="srv" style="--c:#F5B83D"><span>35 / 40</span><span class="p">94 ms</span><span>60 fps</span><span class="r">Paris, FR</span><span class="join">Join</span></div>
-            <div class="srv" style="--c:#F5B83D"><span>33 / 40</span><span class="p">121 ms</span><span>60 fps</span><span class="r">New York City, US</span><span class="join">Join</span></div>
-            <div class="srv" style="--c:#F25C5C"><span>30 / 40</span><span class="p">448 ms</span><span>60 fps</span><span class="r">Sydney, AU</span><span class="join">Join</span></div>
-            </div>
-            <div class="pg" data-pg="library" hidden>
-              <h5 class="pgh">Library</h5><p class="pgs">Your games and how long you have played them.</p>
-              <div class="stats"><small>TOTAL PLAYTIME</small><small>GAMES PLAYED</small><small>MOST PLAYED</small><b>42 h 15 min</b><b>4</b><b>Adopt Me!</b></div>
-              <div class="cols"><div><span class="cap">FAVORITES</span><div class="lc"><div class="ic" style="background:linear-gradient(135deg,#3D6BFF,#8B5CF6)">A</div><div><b>Adopt Me!</b><span>by Uplift Games</span><span class="pt">18 h 40 min</span><div class="bt2"><button class="lb g" type="button">Play</button><button class="lb" type="button">Servers</button><button class="lb" type="button">Rejoin</button><button class="lb" type="button" aria-label="Favorite">&#9733;</button></div></div></div><div class="lc"><div class="ic" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">B</div><div><b>Blox Fruits</b><span>by Gamer Robot Inc</span><span class="pt">9 h 5 min</span><div class="bt2"><button class="lb g" type="button">Play</button><button class="lb" type="button">Servers</button><button class="lb" type="button" aria-label="Favorite">&#9733;</button></div></div></div></div>
-              <div><span class="cap">RECENT</span><div class="lc"><div class="ic" style="background:linear-gradient(135deg,#14b8a6,#3b82f6)">B</div><div><b>Brookhaven RP</b><span>by Wolfpaq</span><span class="pt">11 h 2 min</span><div class="bt2"><button class="lb g" type="button">Play</button><button class="lb" type="button">Servers</button><button class="lb" type="button">Rejoin</button><button class="lb" type="button" aria-label="Favorite">&#9733;</button></div></div></div><div class="lc"><div class="ic" style="background:linear-gradient(135deg,#ec4899,#f97316)">T</div><div><b>Tower of Hell</b><span>by YXCeptional Studios</span><span class="pt">3 h 28 min</span><div class="bt2"><button class="lb g" type="button">Play</button><button class="lb" type="button">Servers</button><button class="lb" type="button" aria-label="Favorite">&#9733;</button></div></div></div></div></div>
-            </div>
-            <div class="pg" data-pg="friends" hidden>
-              <h5 class="pgh">Friends</h5><p class="pgs">Join a friend who is in a game.</p>
-              <div class="ftools"><button class="lb" type="button" id="frefresh">Refresh</button><button class="lb" type="button" id="offbtn">Offline friends: hidden</button><span id="fcount">3 online</span></div>
-              <div class="fc"><div class="av" style="background:linear-gradient(135deg,#3D6BFF,#8B5CF6);--s:#3DD68C">M<i></i></div><div><b>Mia_Builds</b><span>Playing Adopt Me!</span></div><button class="lb g" type="button">Join</button></div><div class="fc"><div class="av" style="background:linear-gradient(135deg,#f59e0b,#ef4444);--s:#3DD68C">K<i></i></div><div><b>Kuba2011</b><span>Playing Blox Fruits</span></div><button class="lb g" type="button">Join</button></div><div class="fc"><div class="av" style="background:linear-gradient(135deg,#14b8a6,#3b82f6);--s:#3D8BFF">N<i></i></div><div><b>NovaFox</b><span>Online</span></div><button class="lb g" type="button" disabled>Join</button></div><div class="fc" data-off><div class="av" style="background:linear-gradient(135deg,#ec4899,#f97316);--s:#5C6377">T<i></i></div><div><b>Tomas_R</b><span>Offline</span></div><button class="lb g" type="button" disabled>Join</button></div>
-            </div>
+            <h4>Servers</h4><p>Adopt Me! · 5 shown</p>
+            <div class="chips"><span class="chip on">Most players</span><span class="chip">Fewest players</span><span class="chip">Best ping</span><span class="chip">Region: all</span></div>
+            <div class="srv" style="--c:var(--good)"><b>38 / 40</b><b>67 ms</b><span>59 fps</span><span>Frankfurt, DE</span><u>Join</u></div>
+            <div class="srv" style="--c:var(--good)"><b>36 / 40</b><b>74 ms</b><span>52 fps</span><span>London, GB</span><u>Join</u></div>
+            <div class="srv" style="--c:var(--warn)"><b>35 / 40</b><b>121 ms</b><span>60 fps</span><span>New York, US</span><u>Join</u></div>
+            <div class="srv" style="--c:var(--warn)"><b>33 / 40</b><b>94 ms</b><span>60 fps</span><span>Paris, FR</span><u>Join</u></div>
+            <div class="srv" style="--c:var(--bad)"><b>30 / 40</b><b>448 ms</b><span>60 fps</span><span>Sydney, AU</span><u>Join</u></div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <section id="features">
-      <div class="split">
-        <div>
-          <h2 data-i18n="h2f">Everything that happens between Play and the game.</h2>
-          <p class="intro" data-i18n="intro">All the controls the Roblox website leaves out, together in one window.</p>
-        </div>
-        <div>
-          <div class="item">
-            <h3 data-i18n="f1t">Know the server before you join</h3>
-            <p data-i18n="f1p">Every server lists its players, ping, FPS and region up front, so you never join blind. Rostr detects regions on its own while the list loads, with nothing to press. Sort by most or fewest players or best ping, then narrow it down by region or maximum ping. Green means smooth, amber means fine, red means trouble.</p>
-          </div>
-          <div class="item">
-            <h3 data-i18n="f2t">Your frame rate, your rules</h3>
-            <p data-i18n="f2p">Set your FPS cap with the slider (30 to 360) or type in an even higher number. Switch on FPS unlock, low graphics, max performance, high quality or reduced telemetry with a single click. Power users can edit the raw FastFlags directly.</p>
-          </div>
-          <div class="item">
-            <h3 data-i18n="f3t">Switch accounts in a click</h3>
-            <p data-i18n="f3p">Add as many accounts as you like and swap between them from the sidebar, with no logging in again. Saved logins are encrypted with your Windows login, and Multi Roblox lets you run more than one client at once.</p>
-          </div>
-          <div class="item">
-            <h3 data-i18n="f4t">Your games, one click away</h3>
-            <p data-i18n="f4p">Your recent games and favorites sit together with the time you’ve spent in each. Play drops you into a random server, Servers lets you pick your own, and Rejoin takes you back to the last one. You can also paste a private server link or see who’s online.</p>
-          </div>
-          <div class="item">
-            <h3 data-i18n="f5t">Stays out of your way</h3>
-            <p data-i18n="f5p">Rostr installs the Roblox client for you and clears out old versions, so they never pile up on your disk.</p>
-          </div>
-          <div class="item">
-            <h3 data-i18n="f6t">Make it look like yours</h3>
-            <p data-i18n="f6p">Eight themes (Dark, Midnight, AMOLED, Ocean, Forest, Sunset, Rose and Light) repaint the app instantly, and nine languages follow your Windows language on first start. Settings are sorted into tabs on the left, so every option is easy to find.</p>
-          </div>
-          <div class="item">
-            <h3 data-i18n="f7t">Updates itself and shows what changed</h3>
-            <p data-i18n="f7p">Rostr checks GitHub for a new version and asks before installing it. Press See change log to read what is new first. The README and the change log open right inside the app, so you never need a browser.</p>
-          </div>
-        </div>
+  <section id="features">
+    <div class="wrap">
+      <div class="head"><h2>Everything between Play and the game.</h2><p>All the controls the Roblox website leaves out, together in one window.</p></div>
+      <div class="grid">
+        <div class="card new"><span class="new-b">NEW</span><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></div><h3>Trending</h3><p>Player counts of popular games, counted every hour. Open a game for a 24 hour, 7 day or 30 day graph.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg></div><h3>Server browser</h3><p>Sort by players or ping, filter by region, and copy a link so a friend lands in the same server. Regions are detected for you.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></svg></div><h3>Server hop and Rejoin</h3><p>Join a random server you have not been in yet, then stay or hop again. Rejoin takes you back to your last one.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg></div><h3>Dim menu</h3><p>Press Left Ctrl + Tab in game for a darker, blurred screen with your clock, friends who are playing, the game wiki, notes and quick actions.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2-6 4 12 2-6h4"/></svg></div><h3>Stats overlay</h3><p>A small click-through box with ping, CPU, RAM, session time and region. You choose the lines and the corner.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.5"/></svg></div><h3>Gallery and instant replay</h3><p>Screenshots, recordings with game sound, and a replay buffer that saves the last 15 to 120 seconds with one hotkey.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div><h3>FPS cap and FastFlags</h3><p>An FPS slider from 30 to 360, one-click presets, and raw FastFlags. Rostr warns you when Roblox will ignore a flag.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a7 7 0 0 1 4 6"/></svg></div><h3>Accounts and Multi Roblox</h3><p>Switch accounts from the sidebar. Logins are encrypted with Windows, and every client is tagged so old ones never pile up.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg></div><h3>Updates itself</h3><p>Rostr checks GitHub, shows what changed and installs the new version after you confirm. The download is checked with SHA-256.</p></div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="overlay">
-      <div class="ov">
-        <div>
-          <h2 data-i18n="h2o">An overlay you control.</h2>
-          <p>A small click-through box sits in the corner of the Roblox window you pick, and only shows while Roblox is in front. Choose which lines it shows, pick the corner it sits in, and bind the hide and show key to whatever suits you. The default is <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>O</kbd>.</p>
-          <ul class="toggles" aria-label="Lines you can switch on or off">
-            <li>Ping</li><li>CPU</li><li>RAM</li><li>Session time</li><li>Region</li><li>Account name</li>
-          </ul>
-        </div>
-        <div class="stage" role="img" aria-label="A game window with the Rostr overlay in the bottom right corner">
-          <div class="ovbox">
-            <div><span>PING</span><b style="color:#3DD68C">~68 ms</b></div>
-            <div><span>CPU</span><b>14%</b></div>
-            <div><span>RAM</span><b>1,240 MB</b></div>
-            <div><span>TIME</span><b>00:42:17</b></div>
-            <div><span>REGION</span><b>Frankfurt, DE</b></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="settings">
-      <div class="ov">
-        <div>
-          <h2 data-i18n="sT">Settings that are easy to find.</h2>
-          <p data-i18n="sP">A tab list on the left: About, Performance, Overlay, General, Appearance, Discord and Storage. Related options sit together in one card, with short descriptions, so nothing is buried in one long page.</p>
-          <ul class="toggles swatches" aria-label="Themes. Pick one to preview it in the settings window."><li><button type="button" class="tbtn" data-theme="Dark" aria-pressed="false"><i style="--b:#0F1117;--a:#3D6BFF"></i>Dark</button></li><li><button type="button" class="tbtn" data-theme="Midnight" aria-pressed="false"><i style="--b:#070A14;--a:#6C8CFF"></i>Midnight</button></li><li><button type="button" class="tbtn" data-theme="AMOLED" aria-pressed="false"><i style="--b:#000000;--a:#3D6BFF"></i>AMOLED</button></li><li><button type="button" class="tbtn" data-theme="Ocean" aria-pressed="false"><i style="--b:#0A1418;--a:#14B8A6"></i>Ocean</button></li><li><button type="button" class="tbtn" data-theme="Forest" aria-pressed="false"><i style="--b:#0E1410;--a:#3FB950"></i>Forest</button></li><li><button type="button" class="tbtn" data-theme="Sunset" aria-pressed="false"><i style="--b:#16100F;--a:#F97316"></i>Sunset</button></li><li><button type="button" class="tbtn" data-theme="Rose" aria-pressed="false"><i style="--b:#150F13;--a:#EC4899"></i>Rose</button></li><li><button type="button" class="tbtn" data-theme="Light" aria-pressed="false"><i style="--b:#F3F5F9;--a:#3D6BFF"></i>Light</button></li></ul>
-        </div>
-        <div class="win set" id="setwin" role="group" aria-label="The Rostr settings page. Pick a theme on the left to see it here.">
-          <div class="bar"><i></i><i></i><i></i></div>
-          <div class="body">
-            <div class="side"><b aria-disabled="true">About</b><b aria-disabled="true">Performance</b><b aria-disabled="true">Overlay</b><button class="on" type="button" data-sp="general">General</button><button type="button" data-sp="appearance">Appearance</button><button type="button" data-sp="discord">Discord</button><b aria-disabled="true">Storage</b></div>
-            <div class="main">
-              <div class="card pg" data-sp-pg="general">
-                <h4>Launcher behavior</h4>
-                <div class="row2"><div><b>Minimize when the game starts</b><span>The launcher gets out of the way.</span></div><i class="sw on"></i></div>
-                <div class="row2"><div><b>Keep running in the tray when closed</b><span>Discord status and playtime keep working.</span></div><i class="sw on"></i></div>
-                <div class="row2"><div><b>Start with Windows</b><span>Starts hidden in the tray.</span></div><i class="sw"></i></div>
-              </div>
-              <div class="card pg" data-sp-pg="appearance" hidden>
-                <h4>Appearance</h4>
-                <div class="row2"><div><b>Theme</b><span id="tname">Dark</span></div></div>
-                <div class="mt" id="mt"></div>
-              </div>
-              <div class="card pg" data-sp-pg="discord" hidden>
-                <h4>Discord status</h4>
-                <div class="row2"><div><b>Discord status</b><span>Shows the game you are playing on your Discord profile, or that you are browsing in Rostr when no game is running.</span></div><i class="sw on"></i></div>
-                <div class="row2"><div><b>Hide the game name on Discord</b><span>Your status says &quot;Playing a Roblox game&quot; and the game page button is left out.</span></div><i class="sw"></i></div>
-              </div>
+  <section id="trending">
+    <div class="wrap">
+      <div class="head"><span class="tag">NEW IN 1.4</span><h2>See what everyone is playing.</h2><p>A GitHub workflow counts the players of every game on the list once an hour. Rostr only reads the result, so nothing is counted on your PC.</p></div>
+      <div class="win" role="img" aria-label="The Trending page: a list of games and a player count graph (example data)">
+        <div class="bar"><i></i><i></i><i></i></div>
+        <div class="main">
+          <div class="tr">
+            <div class="games">
+              <div class="g on"><i style="--a:#3D6BFF;--b:#8B5CF6"></i><div><b>Adopt Me!</b><span>312,480 playing</span></div></div>
+              <div class="g"><i style="--a:#f59e0b;--b:#ef4444"></i><div><b>Blox Fruits</b><span>254,901 playing</span></div></div>
+              <div class="g"><i style="--a:#14b8a6;--b:#3b82f6"></i><div><b>Brookhaven RP</b><span>198,330 playing</span></div></div>
+              <div class="g"><i style="--a:#ec4899;--b:#f97316"></i><div><b>Tower of Hell</b><span>87,214 playing</span></div></div>
+            </div>
+            <div class="graph">
+              <div class="rng"><span class="chip on">24 hours</span><span class="chip">7 days</span><span class="chip">30 days</span></div>
+              <h4>Adopt Me!</h4>
+              <div class="stats"><div><small>NOW</small><b>312,480</b></div><div><small>PEAK</small><b>341,090</b></div><div><small>LOWEST</small><b>228,615</b></div></div>
+              <svg viewBox="0 0 400 130" preserveAspectRatio="none" aria-hidden="true">
+                <defs><linearGradient id="gf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".35"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+                <g stroke="var(--line)" stroke-width="1"><path d="M0 20H400M0 65H400M0 110H400"/></g>
+                <path d="M0 96 L30 88 L60 100 L90 82 L120 70 L150 58 L180 44 L210 34 L240 28 L270 36 L300 26 L330 22 L360 30 L400 18 V130 H0Z" fill="url(#gf)"/>
+                <path d="M0 96 L30 88 L60 100 L90 82 L120 70 L150 58 L180 44 L210 34 L240 28 L270 36 L300 26 L330 22 L360 30 L400 18" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+              </svg>
             </div>
           </div>
         </div>
       </div>
-    </section>
+      <p class="small">Example numbers. The real page shows live counts and keeps the last 30 days of every game.</p>
+    </div>
+  </section>
 
-    <section id="discord">
-      <div class="ov">
-        <div>
-          <h2 data-i18n="dcT">Your game on your Discord profile.</h2>
-          <p data-i18n="dcP">Rostr shows the Roblox game you are in on your Discord profile, with the game name, its creator, a timer and two buttons: Get Rostr and See game page. You can turn it off, or hide the game name, in Settings.</p>
+  <section id="requests">
+    <div class="wrap">
+      <div class="head"><h2>Missing something? Just ask.</h2><p>Both buttons live inside Rostr and open a short GitHub issue form for you.</p></div>
+      <div class="two">
+        <div class="card">
+          <h3>Request a game</h3>
+          <p>On the Trending page, press <b>Request a game</b> and paste the game link or place ID. If it fits, it joins the list and shows up after the next hourly count.</p>
+          <p class="small"><a href="https://github.com/stepak2321/rostr.trebka.net/issues/new?template=game_request.yml&amp;title=Game%20request%3A%20">Open the game request form</a></p>
         </div>
-        <div class="stage" style="display:grid;place-items:center;align-content:center;padding:24px" aria-label="Preview of the Rostr status on a Discord profile">
-          <div class="dx" id="dx">
-            <h5>Playing a game</h5>
-            <div class="row"><div class="big" id="dxbig"></div>
-              <div class="t"><b>Rostr</b><span id="dxd"></span><span id="dxs"></span><span class="el" id="dxel"></span></div></div>
-            <div class="bts" id="dxb"></div>
-          </div>
-          <div class="seg" role="group" aria-label="Status type"><button type="button" data-dx="game" aria-pressed="true">In a game</button><button type="button" data-dx="browse" aria-pressed="false">Browsing servers</button><button type="button" data-dx="hidden" aria-pressed="false">Game name hidden</button></div>
+        <div class="card">
+          <h3>Request a language</h3>
+          <div class="langs"><span class="on">English</span><span>Čeština</span><span>Deutsch</span><span>Español</span><span>Français</span><span>Polski</span><span>Português</span><span>Русский</span><span>Türkçe</span></div>
+          <p>In Settings &gt; Appearance, press <b>Request a language</b> and write its name. Rostr does not add every request, but each one is read.</p>
+          <p class="small"><a href="https://github.com/stepak2321/rostr.trebka.net/issues/new?template=language_request.yml&amp;title=Language%20request%3A%20">Open the language request form</a></p>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="about">
-      <div class="about">
-        <h2 style="font-size:clamp(30px,3.6vw,44px);font-weight:800" data-i18n="aboutT">About Rostr</h2>
-        <p data-i18n="ab1">Rostr is an independent launcher made for people who care about which server they land in. It handles the client, the login and the settings, then gets out of the way while you play.</p>
-        <p data-i18n="ab2">Ping marked with a tilde is an estimate: Roblox servers do not answer ping, so Rostr measures the last router on the way instead.</p>
-        <p data-i18n="ab3">Rostr is not made by, affiliated with or endorsed by Roblox Corporation. Roblox is a trademark of Roblox Corporation.</p>
-      </div>
-    </section>
+  <section id="themes">
+    <div class="wrap">
+      <div class="head"><h2>Make it look like yours.</h2><p>These are the real Rostr themes. Pick one and this page changes with it, the same way the app repaints instantly.</p></div>
+      <div class="themes" id="themebox" role="group" aria-label="Themes"></div>
+    </div>
+  </section>
 
-    <section class="dl" id="download">
-      <h2 data-i18n="h2r">Ready when you are.</h2>
-      <p data-i18n="dlP">Get Rostr for <span class="os-name">Windows</span> and pick your next server.</p>
-      <button type="button" class="btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14"/></svg><span data-i18n="dlFor">Download for <span class="os-name">Windows</span></span>
-      </button>
-      <div class="rel">
-        <span class="pill"><span class="dot" aria-hidden="true"></span><span data-i18n="verLabel">Newest version</span> <b class="ver-text">…</b></span>
-        <a class="gbtn" href="https://github.com/stepak2321/rostr.trebka.net/releases/latest" data-open="log"><span data-i18n="btnLog">See newest changelog</span></a>
-        <a class="gbtn" href="https://github.com/stepak2321/rostr.trebka.net#readme" data-open="readme"><span data-i18n="btnReadme">Open README</span></a>
+  <section id="download">
+    <div class="wrap">
+      <div class="dlbox">
+        <h2>Get Rostr</h2>
+        <p>One file, no installer. Double-click <b>Rostr.exe</b>, add your Roblox account and pick a server.</p>
+        <div class="row">
+          <a class="btn dl-link" href="https://github.com/stepak2321/rostr.trebka.net/releases/latest/download/Rostr.exe">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14"/></svg>Download for Windows</a>
+          <a class="btn ghost" id="loglink" href="https://github.com/stepak2321/rostr.trebka.net/releases/latest">See the change log</a>
+        </div>
+        <span class="pill">Newest version <b id="ver">…</b></span>
       </div>
-    </section>
-  </main>
-</div>
+    </div>
+  </section>
+</main>
 
 <footer>
   <div class="wrap">
-    <span>© 2026 stepak :3 · <a href="https://github.com/stepak2321/rostr.trebka.net">GitHub</a> · <a href="https://github.com/stepak2321/rostr.trebka.net#readme" data-open="readme">README</a> · <a href="https://github.com/stepak2321/rostr.trebka.net/releases/latest" data-open="log" data-i18n="ftLog">Changelog</a> · <a href="https://github.com/stepak2321/rostr.trebka.net/blob/HEAD/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a></span>
-    <span data-i18n="notAff">Not affiliated with Roblox Corporation.</span>
+    <span>Rostr is an independent project. Not made by, affiliated with or endorsed by Roblox Corporation. Roblox is a trademark of Roblox Corporation.</span>
+    <span><a href="https://github.com/stepak2321/rostr.trebka.net">GitHub</a> · <a href="https://github.com/stepak2321/rostr.trebka.net/issues">Issues</a> · MIT License</span>
   </div>
 </footer>
-<div class="ed-backdrop" id="ed" hidden>
-  <div class="ed-win" role="dialog" aria-modal="true" aria-labelledby="ed-name">
-    <div class="ed-head">
-      <span></span>
-      <div class="ed-title"><b id="ed-name">README.md</b><span>~/Rostr</span></div>
-      <button type="button" class="ed-close" id="ed-close" aria-label="Close">&times;</button>
-    </div>
-    <div class="ed-tabs" role="tablist" aria-label="Files">
-      <button type="button" class="ed-tab" role="tab" id="ed-tab-readme" data-doc="readme" aria-selected="true" aria-controls="ed-code">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>README.md</button>
-      <button type="button" class="ed-tab" role="tab" id="ed-tab-log" data-doc="log" aria-selected="false" aria-controls="ed-code">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>CHANGELOG.md</button>
-      <div class="ed-mode" role="group" aria-label="View">
-        <button type="button" id="ed-m-pv" data-mode="preview" aria-pressed="true" data-i18n="edPrev">Preview</button><button type="button" id="ed-m-src" data-mode="source" aria-pressed="false" data-i18n="edSrc">Source</button>
-      </div>
-    </div>
-    <div class="ed-code" id="ed-code" role="tabpanel" tabindex="0"></div>
-    <div class="ed-status">
-      <span id="ed-pos">Ln 1, Col 1</span>
-      <span id="ed-count"></span>
-      <span>Markdown</span>
-      <span>UTF-8</span>
-      <a id="ed-gh" href="https://github.com/stepak2321/rostr.trebka.net" target="_blank" rel="noopener noreferrer" data-i18n="edGh">Open on GitHub</a>
-    </div>
-  </div>
-</div>
+
 <script>
-// Picks the download label for the visitor's system. Add a new entry here when another platform ships.
-(function () {
-  var PLATFORMS = {
-    // url: where the download button goes. Leave it empty and the button does nothing.
-    windows: { name: "Windows", note: "Windows 10 and 11",
-      url: "https://github.com/stepak2321/rostr.trebka.net/releases/latest/download/Rostr.exe" },
-    // No Linux build yet. Put its release file link in url when it exists and the button will start working.
-    linux: { name: "Linux", note: "Linux version coming soon", url: "" }
-  };
+// Same palettes as RobloxLauncher/Core/ThemeManager.cs. Order: Bg, Bg2, Card, Edge, Line, Dim, Track, Disabled, Faint, Muted, Soft, Text2, Text, Accent, AccentBg
+var KEYS=["bg","bg2","card","edge","line","dim","track","disabled","faint","muted","soft","text2","text","accent","accentbg"];
+var THEMES={
+ Dark:"0F1117 12141B 171A22 1F2432 232838 262B38 2A3040 3A4155 5C6377 7C8499 9AA1B5 C9CEDC E6E8EE 3D6BFF 1B2547",
+ Midnight:"070A14 0A0E1C 0E1428 16203A 1A2548 1C2750 22305C 34456E 5B6B94 7886B0 98A6CC C3CCE6 E8EDFB 6C8CFF 16254F",
+ AMOLED:"000000 050505 0D0D0D 1A1A1A 1F1F1F 242424 2C2C2C 3A3A3A 5E5E5E 808080 A0A0A0 CCCCCC F2F2F2 3D6BFF 101A3A",
+ Ocean:"0A1418 0D1A1F 11222A 19313B 1C3A45 1F404C 27505E 3A6674 5E8794 7BA3B1 9CC0CC C6DDE5 E6F3F7 14B8A6 0F3A3A",
+ Forest:"0E1410 111A14 16201A 1F2D24 233629 27392D 2F4636 45614D 6A8574 86A18F A5BDAD CDDCD2 EAF3EC 3FB950 14301C",
+ Sunset:"16100F 1C1413 241A18 352623 3B2A26 42302B 503A33 6A5048 8C7168 A88C83 C4ABA2 E3D2CB F7EEEA F97316 3F2210",
+ Rose:"150F13 1B1318 23181F 352530 3B2A36 432F3C 523B49 6D5260 90727F AD8F9C C8AEBA E6D2DB F8EEF2 EC4899 40162B",
+ Light:"F3F5F9 E9ECF3 FFFFFF E1E5EE E4E8F0 7F8AA3 C3CADB B8C0D2 7E889E 5F6A82 4A5468 2E3648 141A28 3D6BFF DCE5FF"
+};
+function pal(n){return THEMES[n].split(" ")}
+function apply(n){
+  var c=pal(n),r=document.documentElement;
+  KEYS.forEach(function(k,i){r.style.setProperty("--"+k,"#"+c[i])});
+  // The Light theme's "dim" colour is a mid grey in the app (used for buttons with white text), so give the page a lighter chip colour.
+  if(n==="Light"){r.style.setProperty("--dim","#E4E8F0");r.style.setProperty("--track","#D5DBE8")}
+  r.style.colorScheme=n==="Light"?"light":"dark";
+  var m=document.querySelector('meta[name="theme-color"]');if(m)m.content="#"+c[0];
+  Array.prototype.forEach.call(document.querySelectorAll("#themebox button"),function(b){b.setAttribute("aria-pressed",b.dataset.t===n)});
+  try{localStorage.setItem("rostr-theme",n)}catch(e){}
+}
+var box=document.getElementById("themebox");
+Object.keys(THEMES).forEach(function(n){
+  var c=pal(n),b=document.createElement("button");
+  b.type="button";b.dataset.t=n;b.setAttribute("aria-pressed","false");
+  b.innerHTML='<i style="--s1:#'+c[2]+';--s2:#'+c[13]+'"></i>'+n;
+  b.onclick=function(){apply(n)};box.appendChild(b);
+});
+var saved="Dark";try{saved=localStorage.getItem("rostr-theme")||"Dark"}catch(e){}
+apply(THEMES[saved]?saved:"Dark");
 
-  function detect() {
-    // 1. Manual override: ?os=linux or ?os=windows
-    var m = /[?&]os=(windows|linux)/i.exec(location.search);
-    if (m) return m[1].toLowerCase();
-    // 2. The visitor's own choice from the switch link (remembered if storage is allowed)
-    try { var saved = localStorage.getItem("rostr-os"); if (PLATFORMS[saved]) return saved; } catch (e) {}
-    // 3. Auto-detect. Android, ChromeOS and desktop Linux all count as Linux.
-    var nav = navigator, ua = nav.userAgent || "";
-    var hint = (nav.userAgentData && nav.userAgentData.platform) || nav.platform || "";
-    var all = hint + " " + ua;
-    if (/android|cros|linux|x11/i.test(all)) return "linux";
-    return "windows";
-  }
-
-  var current = detect();
-  var note = document.getElementById("os-note");
-  var sw = document.getElementById("os-switch");
-
-  function render() {
-    var names = document.querySelectorAll(".os-name");
-    var os = PLATFORMS[current], other = current === "windows" ? "linux" : "windows";
-    for (var i = 0; i < names.length; i++) names[i].textContent = os.name;
-    if (note) note.textContent = os.note;
-    if (sw) sw.textContent = "Switch to " + PLATFORMS[other].name;
-  }
-
-  if (sw) sw.addEventListener("click", function (e) {
-    e.preventDefault();
-    current = current === "windows" ? "linux" : "windows";
-    try { localStorage.setItem("rostr-os", current); } catch (err) {}
-    render();
-  });
-
-  var buttons = document.querySelectorAll(".btn");
-  for (var j = 0; j < buttons.length; j++) {
-    buttons[j].addEventListener("click", function () {
-      var url = PLATFORMS[current].url;
-      if (url) window.location.href = url;
-    });
-  }
-
-  window.rostrRender = render;
-  render();
-})();
-
-// Language switcher. English text lives in the HTML; other languages are listed here. Missing keys fall back to English.
-(function () {
-  var T = {"cs": {"name": "Čeština", "navDl": "Stáhnout", "navFeat": "Funkce", "navOv": "Overlay", "navAbout": "O aplikaci", "h1": "Podívej se na server, než se připojíš.", "lead": "Rostr je launcher pro Roblox na <span class=\"os-name\">Windows</span>. Procházej servery podle pingu, FPS a regionu, jedním klikem skoč na náhodný a hlídej hru malým overlayem přímo ve hře.", "dlFor": "Stáhnout pro <span class=\"os-name\">Windows</span>", "h2f": "Všechno, co se děje mezi tlačítkem Play a hrou.", "intro": "Všechny ovládací prvky, které web Robloxu vynechává, v jednom okně.", "f1t": "Znej server dřív, než se připojíš", "f1p": "Každý server ukazuje hráče, ping, FPS a region předem, takže nikdy nevstupuješ naslepo. Rostr zjišťuje regiony sám během načítání seznamu. Řaď podle nejvíce či nejméně hráčů nebo nejlepšího pingu a pak filtruj podle regionu nebo maximálního pingu. Zelená znamená plynulé, oranžová v pořádku, červená potíže.", "f2t": "Tvoje snímky za sekundu, tvoje pravidla", "f2p": "Nastav limit FPS posuvníkem (30 až 360) nebo zadej ještě vyšší číslo. Jedním klikem zapni odemčení FPS, nízkou grafiku, maximální výkon, vysokou kvalitu nebo méně telemetrie. Pokročilí mohou upravovat přímo FastFlagy.", "f3t": "Přepínej účty jedním klikem", "f3p": "Přidej tolik účtů, kolik chceš, a přepínej mezi nimi v postranním panelu bez nového přihlašování. Uložená přihlášení jsou šifrována tvým přihlášením do Windows a Multi Roblox umožní spustit víc klientů najednou.", "f4t": "Tvoje hry na jedno kliknutí", "f4p": "Nedávné hry a oblíbené jsou pohromadě s časem, který jsi v nich strávil. Play tě hodí na náhodný server, Servery ti dají vybrat vlastní a Rejoin tě vrátí na poslední. Můžeš také vložit odkaz na soukromý server nebo vidět, kdo je online.", "f5t": "Nepřekáží ti", "f5p": "Rostr za tebe nainstaluje klienta Roblox a maže staré verze, aby se ti nehromadily na disku.", "h2o": "Overlay, který ovládáš ty.", "h2r": "Můžeš začít, kdykoli budeš chtít.", "dlP": "Získej Rostr pro <span class=\"os-name\">Windows</span> a vyber si další server.", "aboutT": "O Rostru", "ab1": "Rostr je nezávislý launcher pro lidi, kterým záleží na tom, na jakém serveru skončí. Stará se o klienta, přihlášení i nastavení a během hraní se ti drží z cesty.", "ab2": "Ping označený vlnovkou je odhad: servery Robloxu na ping neodpovídají, a proto Rostr měří poslední router na cestě.", "ab3": "Rostr nevytvořil, není spojen ani schválen společností Roblox Corporation. Roblox je ochranná známka společnosti Roblox Corporation.", "notAff": "Není spojen se společností Roblox Corporation.", "dcT": "Tvoje hra na tvém Discord profilu.", "dcP": "Rostr zobrazí na tvém Discord profilu Roblox hru, ve které jsi, s názvem hry, jejím tvůrcem, časovačem a dvěma tlačítky: Získat Rostr a Stránka hry. V nastavení to můžeš vypnout nebo skrýt název hry.", "verLabel": "Nejnovější verze", "btnLog": "Zobrazit nejnovější změny", "btnReadme": "Otevřít README", "edGh": "Otevřít na GitHubu", "edPrev": "Náhled", "edSrc": "Zdroj", "edLoading": "Načítám z GitHubu...", "edError": "Teď se to nepodařilo načíst z GitHubu. Použij Otevřít na GitHubu.", "edNoNotes": "Pro toto vydání nebyl napsán seznam změn.", "f6t": "Ať vypadá podle tebe", "f6p": "Osm motivů (Dark, Midnight, AMOLED, Ocean, Forest, Sunset, Rose a Light) přebarví aplikaci okamžitě a devět jazyků se při prvním spuštění řídí jazykem Windows. Nastavení je rozdělené do karet vlevo, takže každou volbu snadno najdeš.", "f7t": "Aktualizuje se sama a ukáže, co se změnilo", "f7p": "Rostr hledá na GitHubu novou verzi a před instalací se zeptá. Tlačítkem Zobrazit změny si nejdřív přečteš, co je nového. README i seznam změn se otevřou přímo v aplikaci, prohlížeč nepotřebuješ.", "sT": "Nastavení, které snadno najdeš.", "sP": "Seznam karet vlevo: O aplikaci, Výkon, Overlay, Obecné, Vzhled, Discord a Úložiště. Související volby jsou pohromadě v jedné kartě s krátkým popisem, nic není schované na jedné dlouhé stránce.", "ftLog": "Seznam změn"}, "de": {"name": "Deutsch", "navDl": "Download", "navFeat": "Funktionen", "navOv": "Overlay", "navAbout": "Über", "h1": "Sieh den Server, bevor du beitrittst.", "lead": "Rostr ist ein Launcher für Roblox unter <span class=\"os-name\">Windows</span>. Durchsuche Server nach Ping, FPS und Region, springe mit einem Klick auf einen zufälligen und behalte dein Spiel mit einem kleinen Overlay im Blick.", "dlFor": "Download für <span class=\"os-name\">Windows</span>", "h2f": "Alles zwischen Play und dem Spiel.", "intro": "Alle Einstellungen, die die Roblox-Website weglässt, in einem Fenster.", "f1t": "Kenne den Server, bevor du beitrittst", "f2t": "Deine Framerate, deine Regeln", "f3t": "Konten mit einem Klick wechseln", "f4t": "Deine Spiele, einen Klick entfernt", "f5t": "Bleibt dir aus dem Weg", "h2o": "Ein Overlay, das du kontrollierst.", "h2r": "Bereit, wenn du es bist.", "dlP": "Hol dir Rostr für <span class=\"os-name\">Windows</span> und wähle deinen nächsten Server.", "aboutT": "Über Rostr", "notAff": "Nicht mit Roblox Corporation verbunden.", "dcT": "Dein Spiel auf deinem Discord-Profil.", "dcP": "Rostr zeigt das Roblox-Spiel, in dem du bist, auf deinem Discord-Profil an, mit Spielname, Ersteller, Timer und zwei Buttons. In den Einstellungen kannst du es ausschalten.", "verLabel": "Neueste Version", "btnLog": "Neueste Änderungen ansehen", "btnReadme": "README öffnen", "edGh": "Auf GitHub öffnen", "edPrev": "Vorschau", "edSrc": "Quelltext", "edLoading": "Lade von GitHub ...", "edError": "Das konnte gerade nicht von GitHub geladen werden. Nutze stattdessen Auf GitHub öffnen.", "edNoNotes": "Für diese Version wurde kein Änderungsprotokoll geschrieben.", "f6t": "Gestalte es nach deinem Geschmack", "f6p": "Acht Designs (Dark, Midnight, AMOLED, Ocean, Forest, Sunset, Rose und Light) färben die App sofort um, und neun Sprachen folgen beim ersten Start deiner Windows-Sprache. Die Einstellungen sind in Tabs links sortiert, sodass jede Option leicht zu finden ist.", "f7t": "Aktualisiert sich selbst und zeigt, was neu ist", "f7p": "Rostr prüft GitHub auf eine neue Version und fragt vor der Installation nach. Mit Änderungen ansehen liest du vorher, was neu ist. README und Änderungsprotokoll öffnen sich direkt in der App, einen Browser brauchst du nicht.", "sT": "Einstellungen, die man leicht findet.", "sP": "Eine Tab-Liste links: Info, Leistung, Overlay, Allgemein, Aussehen, Discord und Speicher. Zusammengehörige Optionen stehen in einer Karte mit kurzen Beschreibungen, nichts versteckt sich auf einer langen Seite.", "ftLog": "Änderungsprotokoll"}, "es": {"name": "Español", "navDl": "Descargar", "navFeat": "Funciones", "navOv": "Overlay", "navAbout": "Acerca de", "h1": "Mira el servidor antes de entrar.", "lead": "Rostr es un launcher de Roblox para <span class=\"os-name\">Windows</span>. Explora servidores por ping, FPS y región, entra a uno aleatorio con un clic y vigila tu juego con un pequeño overlay.", "dlFor": "Descargar para <span class=\"os-name\">Windows</span>", "h2f": "Todo lo que pasa entre Jugar y el juego.", "intro": "Todos los controles que la web de Roblox omite, en una sola ventana.", "f1t": "Conoce el servidor antes de entrar", "f2t": "Tus FPS, tus reglas", "f3t": "Cambia de cuenta con un clic", "f4t": "Tus juegos, a un clic", "f5t": "No te estorba", "h2o": "Un overlay que tú controlas.", "h2r": "Listo cuando tú lo estés.", "dlP": "Consigue Rostr para <span class=\"os-name\">Windows</span> y elige tu próximo servidor.", "aboutT": "Acerca de Rostr", "notAff": "Sin relación con Roblox Corporation.", "dcT": "Tu juego en tu perfil de Discord.", "dcP": "Rostr muestra en tu perfil de Discord el juego de Roblox en el que estás, con su nombre, creador, temporizador y dos botones. Puedes desactivarlo en los ajustes.", "verLabel": "Última versión", "btnLog": "Ver los últimos cambios", "btnReadme": "Abrir README", "edGh": "Abrir en GitHub", "edPrev": "Vista previa", "edSrc": "Código", "edLoading": "Cargando desde GitHub...", "edError": "No se pudo cargar desde GitHub ahora mismo. Usa Abrir en GitHub.", "edNoNotes": "No se escribió un registro de cambios para esta versión.", "f6t": "Hazlo a tu manera", "f6p": "Ocho temas (Dark, Midnight, AMOLED, Ocean, Forest, Sunset, Rose y Light) cambian la app al instante, y nueve idiomas siguen el idioma de Windows al primer inicio. Los ajustes están ordenados en pestañas a la izquierda, así que cada opción es fácil de encontrar.", "f7t": "Se actualiza sola y te muestra qué cambió", "f7p": "Rostr busca una versión nueva en GitHub y pregunta antes de instalarla. Con Ver cambios lees primero las novedades. El README y el registro de cambios se abren dentro de la app, sin necesidad de navegador.", "sT": "Ajustes fáciles de encontrar.", "sP": "Una lista de pestañas a la izquierda: Acerca de, Rendimiento, Overlay, General, Apariencia, Discord y Almacenamiento. Las opciones relacionadas están juntas en una tarjeta con descripciones cortas, sin nada escondido en una página larga.", "ftLog": "Cambios"}, "fr": {"name": "Français", "navDl": "Télécharger", "navFeat": "Fonctions", "navOv": "Overlay", "navAbout": "À propos", "h1": "Voyez le serveur avant de le rejoindre.", "lead": "Rostr est un lanceur pour Roblox sur <span class=\"os-name\">Windows</span>. Parcourez les serveurs par ping, FPS et région, rejoignez-en un au hasard en un clic et gardez un œil sur votre jeu grâce à un petit overlay.", "dlFor": "Télécharger pour <span class=\"os-name\">Windows</span>", "h2f": "Tout ce qui se passe entre Jouer et le jeu.", "intro": "Tous les réglages que le site de Roblox omet, dans une seule fenêtre.", "f1t": "Connaissez le serveur avant de rejoindre", "f2t": "Vos FPS, vos règles", "f3t": "Changez de compte en un clic", "f4t": "Vos jeux à un clic", "f5t": "Reste discret", "h2o": "Un overlay que vous contrôlez.", "h2r": "Prêt quand vous l’êtes.", "dlP": "Obtenez Rostr pour <span class=\"os-name\">Windows</span> et choisissez votre prochain serveur.", "aboutT": "À propos de Rostr", "notAff": "Non affilié à Roblox Corporation.", "dcT": "Votre jeu sur votre profil Discord.", "dcP": "Rostr affiche sur votre profil Discord le jeu Roblox en cours, avec son nom, son créateur, un chronomètre et deux boutons. Désactivable dans les paramètres.", "verLabel": "Dernière version", "btnLog": "Voir les derniers changements", "btnReadme": "Ouvrir le README", "edGh": "Ouvrir sur GitHub", "edPrev": "Aperçu", "edSrc": "Source", "edLoading": "Chargement depuis GitHub...", "edError": "Impossible de charger cela depuis GitHub pour le moment. Utilisez Ouvrir sur GitHub.", "edNoNotes": "Aucun journal des modifications n’a été rédigé pour cette version.", "f6t": "Personnalisez-le", "f6p": "Huit thèmes (Dark, Midnight, AMOLED, Ocean, Forest, Sunset, Rose et Light) repeignent l’appli instantanément, et neuf langues suivent celle de Windows au premier lancement. Les paramètres sont rangés en onglets à gauche, donc chaque option se trouve facilement.", "f7t": "Se met à jour seul et montre ce qui change", "f7p": "Rostr cherche une nouvelle version sur GitHub et demande avant de l’installer. Avec Voir les changements, vous lisez d’abord les nouveautés. Le README et le journal des modifications s’ouvrent dans l’appli, sans navigateur.", "sT": "Des paramètres faciles à trouver.", "sP": "Une liste d’onglets à gauche : À propos, Performances, Overlay, Général, Apparence, Discord et Stockage. Les options liées sont réunies dans une carte avec de courtes descriptions, rien n’est caché dans une longue page.", "ftLog": "Journal des modifications"}, "pl": {"name": "Polski", "navDl": "Pobierz", "navFeat": "Funkcje", "navOv": "Overlay", "navAbout": "O programie", "h1": "Zobacz serwer, zanim do niego dołączysz.", "lead": "Rostr to launcher do Robloxa na <span class=\"os-name\">Windows</span>. Przeglądaj serwery według pingu, FPS i regionu, wskakuj na losowy jednym kliknięciem i miej grę pod kontrolą dzięki małemu overlayowi.", "dlFor": "Pobierz na <span class=\"os-name\">Windows</span>", "h2f": "Wszystko, co dzieje się między Play a grą.", "intro": "Wszystkie opcje, których brakuje na stronie Robloxa, w jednym oknie.", "f1t": "Poznaj serwer, zanim dołączysz", "f2t": "Twoje FPS, twoje zasady", "f3t": "Zmieniaj konta jednym kliknięciem", "f4t": "Twoje gry na wyciągnięcie ręki", "f5t": "Nie przeszkadza", "h2o": "Overlay pod twoją kontrolą.", "h2r": "Gotowe, gdy ty jesteś.", "dlP": "Pobierz Rostr na <span class=\"os-name\">Windows</span> i wybierz kolejny serwer.", "aboutT": "O Rostr", "notAff": "Niepowiązany z Roblox Corporation.", "dcT": "Twoja gra na profilu Discord.", "dcP": "Rostr pokazuje na profilu Discord grę Roblox, w której jesteś, z nazwą, twórcą, licznikiem czasu i dwoma przyciskami. Możesz to wyłączyć w ustawieniach.", "verLabel": "Najnowsza wersja", "btnLog": "Zobacz najnowsze zmiany", "btnReadme": "Otwórz README", "edGh": "Otwórz na GitHubie", "edPrev": "Podgląd", "edSrc": "Źródło", "edLoading": "Wczytuję z GitHuba...", "edError": "Nie udało się teraz wczytać tego z GitHuba. Użyj Otwórz na GitHubie.", "edNoNotes": "Dla tego wydania nie napisano listy zmian.", "f6t": "Ustaw po swojemu", "f6p": "Osiem motywów (Dark, Midnight, AMOLED, Ocean, Forest, Sunset, Rose i Light) zmienia wygląd aplikacji natychmiast, a dziewięć języków przy pierwszym uruchomieniu podąża za językiem Windows. Ustawienia są podzielone na karty po lewej, więc każdą opcję łatwo znaleźć.", "f7t": "Aktualizuje się sam i pokazuje, co się zmieniło", "f7p": "Rostr sprawdza na GitHubie nową wersję i pyta przed instalacją. Przyciskiem Zobacz zmiany najpierw przeczytasz, co nowego. README i lista zmian otwierają się w aplikacji, przeglądarka nie jest potrzebna.", "sT": "Ustawienia, które łatwo znaleźć.", "sP": "Lista kart po lewej: O programie, Wydajność, Overlay, Ogólne, Wygląd, Discord i Pamięć. Powiązane opcje są razem w jednej karcie z krótkimi opisami, nic nie ginie na jednej długiej stronie.", "ftLog": "Lista zmian"}, "pt": {"name": "Português", "navDl": "Baixar", "navFeat": "Recursos", "navOv": "Overlay", "navAbout": "Sobre", "h1": "Veja o servidor antes de entrar.", "lead": "O Rostr é um launcher de Roblox para <span class=\"os-name\">Windows</span>. Navegue pelos servidores por ping, FPS e região, entre em um aleatório com um clique e acompanhe seu jogo com um pequeno overlay.", "dlFor": "Baixar para <span class=\"os-name\">Windows</span>", "h2f": "Tudo o que acontece entre o Play e o jogo.", "intro": "Todos os controles que o site do Roblox deixa de fora, em uma só janela.", "f1t": "Conheça o servidor antes de entrar", "f2t": "Seus FPS, suas regras", "f3t": "Troque de conta com um clique", "f4t": "Seus jogos a um clique", "f5t": "Não atrapalha", "h2o": "Um overlay que você controla.", "h2r": "Pronto quando você estiver.", "dlP": "Baixe o Rostr para <span class=\"os-name\">Windows</span> e escolha seu próximo servidor.", "aboutT": "Sobre o Rostr", "notAff": "Sem afiliação com a Roblox Corporation.", "dcT": "Seu jogo no seu perfil do Discord.", "dcP": "O Rostr mostra no seu perfil do Discord o jogo do Roblox em que você está, com nome, criador, cronômetro e dois botões. Dá para desativar nas configurações.", "verLabel": "Versão mais recente", "btnLog": "Ver as últimas mudanças", "btnReadme": "Abrir README", "edGh": "Abrir no GitHub", "edPrev": "Pré-visualização", "edSrc": "Código", "edLoading": "Carregando do GitHub...", "edError": "Não foi possível carregar isto do GitHub agora. Use Abrir no GitHub.", "edNoNotes": "Nenhum registro de alterações foi escrito para esta versão.", "f6t": "Deixe do seu jeito", "f6p": "Oito temas (Dark, Midnight, AMOLED, Ocean, Forest, Sunset, Rose e Light) mudam o app na hora, e nove idiomas seguem o idioma do Windows na primeira abertura. As configurações são organizadas em abas à esquerda, então cada opção é fácil de achar.", "f7t": "Atualiza sozinho e mostra o que mudou", "f7p": "O Rostr procura uma versão nova no GitHub e pergunta antes de instalar. Com Ver mudanças, você lê primeiro as novidades. O README e o registro de alterações abrem dentro do app, sem precisar de navegador.", "sT": "Configurações fáceis de achar.", "sP": "Uma lista de abas à esquerda: Sobre, Desempenho, Overlay, Geral, Aparência, Discord e Armazenamento. As opções relacionadas ficam juntas em um cartão com descrições curtas, sem nada escondido em uma página longa.", "ftLog": "Registro de alterações"}, "ru": {"name": "Русский", "navDl": "Скачать", "navFeat": "Функции", "navOv": "Оверлей", "navAbout": "О Rostr", "h1": "Посмотри на сервер до входа.", "lead": "Rostr — лаунчер для Roblox на <span class=\"os-name\">Windows</span>. Выбирай серверы по пингу, FPS и региону, заходи на случайный в один клик и следи за игрой с помощью небольшого оверлея.", "dlFor": "Скачать для <span class=\"os-name\">Windows</span>", "h2f": "Всё, что происходит между Play и игрой.", "intro": "Все настройки, которых нет на сайте Roblox, в одном окне.", "f1t": "Узнай сервер до входа", "f2t": "Твой FPS, твои правила", "f3t": "Смена аккаунта в один клик", "f4t": "Твои игры под рукой", "f5t": "Не мешает", "h2o": "Оверлей под твоим контролем.", "h2r": "Готово, когда готов ты.", "dlP": "Скачай Rostr для <span class=\"os-name\">Windows</span> и выбери следующий сервер.", "aboutT": "О Rostr", "notAff": "Не связан с Roblox Corporation.", "dcT": "Твоя игра в профиле Discord.", "dcP": "Rostr показывает в профиле Discord игру Roblox, в которой ты находишься, с названием, автором, таймером и двумя кнопками. Можно отключить в настройках.", "verLabel": "Последняя версия", "btnLog": "Посмотреть последние изменения", "btnReadme": "Открыть README", "edGh": "Открыть на GitHub", "edPrev": "Просмотр", "edSrc": "Исходник", "edLoading": "Загрузка с GitHub...", "edError": "Сейчас не удалось загрузить это с GitHub. Нажми «Открыть на GitHub».", "edNoNotes": "Для этого выпуска список изменений не написан.", "f6t": "Настрой под себя", "f6p": "Восемь тем (Dark, Midnight, AMOLED, Ocean, Forest, Sunset, Rose и Light) перекрашивают приложение мгновенно, а девять языков при первом запуске подстраиваются под язык Windows. Настройки разложены по вкладкам слева, так что любую опцию легко найти.", "f7t": "Обновляется сам и показывает, что изменилось", "f7p": "Rostr проверяет на GitHub новую версию и спрашивает перед установкой. Кнопка «Посмотреть изменения» покажет, что нового, ещё до установки. README и список изменений открываются прямо в приложении, браузер не нужен.", "sT": "Настройки, которые легко найти.", "sP": "Список вкладок слева: О программе, Производительность, Оверлей, Общие, Оформление, Discord и Хранилище. Связанные опции собраны в одной карточке с короткими описаниями, ничего не теряется на одной длинной странице.", "ftLog": "Список изменений"}, "tr": {"name": "Türkçe", "navDl": "İndir", "navFeat": "Özellikler", "navOv": "Overlay", "navAbout": "Hakkında", "h1": "Katılmadan önce sunucuyu gör.", "lead": "Rostr, <span class=\"os-name\">Windows</span> için bir Roblox başlatıcısıdır. Sunucuları ping, FPS ve bölgeye göre gez, tek tıkla rastgele birine gir ve küçük bir overlay ile oyununu takip et.", "dlFor": "<span class=\"os-name\">Windows</span> için indir", "h2f": "Play ile oyun arasında olan her şey.", "intro": "Roblox sitesinin sunmadığı tüm kontroller tek pencerede.", "f1t": "Katılmadan önce sunucuyu tanı", "f2t": "Senin FPS’in, senin kuralların", "f3t": "Tek tıkla hesap değiştir", "f4t": "Oyunların tek tık uzakta", "f5t": "Yolundan çekilir", "h2o": "Senin kontrol ettiğin bir overlay.", "h2r": "Sen hazır olunca hazır.", "dlP": "<span class=\"os-name\">Windows</span> için Rostr’u indir ve bir sonraki sunucunu seç.", "aboutT": "Rostr hakkında", "notAff": "Roblox Corporation ile bağlantısı yoktur.", "dcT": "Oyunun Discord profilinde.", "dcP": "Rostr, içinde olduğun Roblox oyununu oyun adı, yapımcısı, sayaç ve iki düğmeyle Discord profilinde gösterir. Ayarlardan kapatabilirsin.", "verLabel": "En yeni sürüm", "btnLog": "En yeni değişiklikleri gör", "btnReadme": "README’yi aç", "edGh": "GitHub’da aç", "edPrev": "Önizleme", "edSrc": "Kaynak", "edLoading": "GitHub’dan yükleniyor...", "edError": "Bu şu anda GitHub’dan yüklenemedi. Bunun yerine GitHub’da aç düğmesini kullan.", "edNoNotes": "Bu sürüm için değişiklik günlüğü yazılmadı.", "f6t": "Sana göre görünsün", "f6p": "Sekiz tema (Dark, Midnight, AMOLED, Ocean, Forest, Sunset, Rose ve Light) uygulamayı anında yeniden boyar, dokuz dil ilk açılışta Windows dilini izler. Ayarlar solda sekmelere ayrılmıştır, böylece her seçeneği bulmak kolaydır.", "f7t": "Kendini günceller ve neyin değiştiğini gösterir", "f7p": "Rostr GitHub’da yeni sürüm arar ve yüklemeden önce sorar. Değişiklikleri gör düğmesiyle önce nelerin yeni olduğunu okursun. README ve değişiklik günlüğü doğrudan uygulamada açılır, tarayıcıya gerek kalmaz.", "sT": "Kolay bulunan ayarlar.", "sP": "Solda bir sekme listesi: Hakkında, Performans, Overlay, Genel, Görünüm, Discord ve Depolama. İlgili seçenekler kısa açıklamalarla tek bir kartta durur, uzun tek bir sayfada kaybolmaz.", "ftLog": "Değişiklik günlüğü"}};
-  var sel = document.getElementById("lang");
-  var nodes = document.querySelectorAll("[data-i18n]");
-  for (var i = 0; i < nodes.length; i++) nodes[i].setAttribute("data-en", nodes[i].innerHTML);
-  sel.innerHTML = '<option value="en">English</option>';
-  for (var k in T) sel.innerHTML += '<option value="' + k + '">' + T[k].name + '</option>';
-  function apply(l) {
-    document.documentElement.lang = l;
-    for (var i = 0; i < nodes.length; i++) {
-      var key = nodes[i].getAttribute("data-i18n");
-      nodes[i].innerHTML = (T[l] && T[l][key]) || nodes[i].getAttribute("data-en");
-    }
-    sel.value = l;
-    if (window.rostrRender) window.rostrRender();
-    try { localStorage.setItem("rostr-lang", l); } catch (e) {}
-  }
-  var start = "en";
-  try { start = localStorage.getItem("rostr-lang") || ""; } catch (e) {}
-  if (!start) { var b = (navigator.language || "en").slice(0, 2).toLowerCase(); start = (b === "sk" ? "cs" : b); }
-  if (start !== "en" && !T[start]) start = "en";
-  sel.addEventListener("change", function () { apply(sel.value); });
-  // Lets the editor window below translate texts it makes at runtime. Returns null for English.
-  window.rostrT = function (k) { var l = sel.value; return (T[l] && T[l][k]) || null; };
-  apply(start);
-})();
-</script>
-<script>
-// Newest version from GitHub, and the README / change log window (like a small Linux text editor).
-(function () {
-  var REPO = "stepak2321/rostr.trebka.net";
-  var API = "https://api.github.com/repos/" + REPO;
-
-  var root = document.getElementById("ed");
-  var code = document.getElementById("ed-code");
-  var nameEl = document.getElementById("ed-name");
-  var closeBtn = document.getElementById("ed-close");
-  var ghLink = document.getElementById("ed-gh");
-  var posEl = document.getElementById("ed-pos");
-  var countEl = document.getElementById("ed-count");
-  var tabs = [document.getElementById("ed-tab-readme"), document.getElementById("ed-tab-log")];
-
-  function tr(key, fallback) { return (window.rostrT && window.rostrT(key)) || fallback; }
-
-  // Keeps GitHub answers for a few minutes, so reopening the window does not call the API again (it has a limit).
-  function cacheGet(key, maxAge) {
-    try { var o = JSON.parse(sessionStorage.getItem(key)); if (o && Date.now() - o.t < maxAge) return o.v; } catch (e) {}
-    return null;
-  }
-  function cacheSet(key, v) { try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), v: v })); } catch (e) {} }
-
-  function checked(r) { if (!r.ok) throw new Error("HTTP " + r.status); return r; }
-
-  var latestP = null;
-  function getLatest() {
-    if (latestP) return latestP;
-    var c = cacheGet("rostr-latest", 600000);
-    if (c) { latestP = Promise.resolve(c); return latestP; }
-    latestP = fetch(API + "/releases/latest", { headers: { Accept: "application/vnd.github+json" } })
-      .then(checked).then(function (r) { return r.json(); })
-      .then(function (j) {
-        var v = { tag: j.tag_name || "", body: j.body || "", url: j.html_url || "", date: j.published_at || "" };
-        cacheSet("rostr-latest", v);
-        return v;
-      });
-    latestP.catch(function () { latestP = null; });
-    return latestP;
-  }
-
-  var readmeP = null;
-  function getReadme() {
-    if (readmeP) return readmeP;
-    var c = cacheGet("rostr-readme", 600000);
-    if (c) { readmeP = Promise.resolve(c); return readmeP; }
-    readmeP = fetch(API + "/readme", { headers: { Accept: "application/vnd.github.raw+json" } })
-      .then(checked).then(function (r) { return r.text(); })
-      .catch(function () {
-        return fetch("https://raw.githubusercontent.com/" + REPO + "/HEAD/README.md").then(checked).then(function (r) { return r.text(); });
-      })
-      .then(function (t) { cacheSet("rostr-readme", t); return t; });
-    readmeP.catch(function () { readmeP = null; });
-    return readmeP;
-  }
-
-  // ---- the version label ----
-  var verNodes = document.querySelectorAll(".ver-text");
-  var pills = document.querySelectorAll(".pill");
-  getLatest().then(function (v) {
-    for (var i = 0; i < verNodes.length; i++) verNodes[i].textContent = v.tag || "—";
-  }).catch(function () {
-    for (var i = 0; i < pills.length; i++) pills[i].hidden = true;
-  });
-
-  // ---- tiny Markdown highlighter: it shows the text like an editor does, it does not turn it into a page ----
-  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
-
-  function inline(raw) {
-    var o = esc(raw);
-    o = o.replace(/`([^`]+)`/g, '<span class="c">`$1`</span>');
-    o = o.replace(/\*\*([^*]+)\*\*/g, '<span class="b">**$1**</span>');
-    o = o.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
-      '<a class="u" href="$2" target="_blank" rel="noopener noreferrer">[$1]($2)</a>');
-    return o;
-  }
-
-  function lineHtml(raw, st) {
-    if (/^\s*```/.test(raw)) { st.code = !st.code; return '<span class="c">' + esc(raw) + "</span>"; }
-    if (st.code) return '<span class="c">' + esc(raw) + "</span>";
-    if (/^#{1,6}\s/.test(raw)) return '<span class="h">' + inline(raw) + "</span>";
-    if (/^\s*>/.test(raw)) return '<span class="q">' + inline(raw) + "</span>";
-    var m = /^(\s*)([-*+]|\d+\.)(\s+)(.*)$/.exec(raw);
-    if (m) return esc(m[1]) + '<span class="m">' + esc(m[2]) + "</span>" + esc(m[3]) + inline(m[4]);
-    return inline(raw);
-  }
-
-  function renderSource(text) {
-    code.classList.remove("pv"); posEl.hidden = false;
-    var lines = text.replace(/\r\n?/g, "\n").replace(/\n+$/, "").split("\n");
-    var st = { code: false }, out = [];
-    for (var i = 0; i < lines.length; i++)
-      out.push('<div class="l"><span class="n">' + (i + 1) + '</span><span class="t">' + lineHtml(lines[i], st) + "</span></div>");
-    code.innerHTML = out.join("");
-    countEl.textContent = lines.length + " " + (lines.length === 1 ? "line" : "lines");
-    posEl.textContent = "Ln 1, Col 1";
-  }
-
-  // ---- Markdown renderer for the Preview mode: turns the text into a real page (headings, bold, lists, links) ----
-  // Everything is escaped first and only a fixed set of tags is produced, so text from GitHub can never inject HTML.
-  function safeUrl(u) {
-    u = u.trim();
-    if (/^https?:\/\//i.test(u) || /^mailto:/i.test(u)) return u;
-    if (u.charAt(0) === "#") return null;
-    if (/^[a-z][a-z0-9+.\-]*:/i.test(u) || u.slice(0, 2) === "//") return null;   // javascript:, data: ...
-    return "https://github.com/" + REPO + "/blob/HEAD/" + u.replace(/^\.?\//, "");   // README links like [LICENSE](LICENSE)
-  }
-
-  function emph(s) {
-    s = s.replace(/\*\*([^*\n]+?)\*\*/g, "<strong>$1</strong>").replace(/__([^_\n]+?)__/g, "<strong>$1</strong>");
-    s = s.replace(/(^|[^*\w])\*([^*\s][^*\n]*?)\*(?![*\w])/g, "$1<em>$2</em>");
-    s = s.replace(/(^|[^_\w])_([^_\s][^_\n]*?)_(?![_\w])/g, "$1<em>$2</em>");
-    return s.replace(/~~([^~\n]+?)~~/g, "<del>$1</del>");
-  }
-
-  function mdInline(raw) {
-    var stash = [];
-    function keep(h) { stash.push(h); return "\u0000" + (stash.length - 1) + "\u0000"; }
-    var o = esc(raw);
-    o = o.replace(/`([^`]+)`/g, function (m, c) { return keep("<code>" + c + "</code>"); });
-    o = o.replace(/!?\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^)]*&quot;)?\)/g, function (m, t, u) {
-      var h = safeUrl(u), label = emph(t || u);
-      return h ? keep('<a href="' + h + '" target="_blank" rel="noopener noreferrer">' + label + "</a>") : label;
-    });
-    o = o.replace(/(^|[\s(>])(https?:\/\/[^\s<>)]*[^\s<>).,;:!?])/g, function (m, p, u) {
-      return p + keep('<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + u + "</a>");
-    });
-    o = emph(o);
-    for (var k = 0; k < 4 && o.indexOf("\u0000") > -1; k++)
-      o = o.replace(/\u0000(\d+)\u0000/g, function (m, i) { return stash[+i]; });
-    return o;
-  }
-
-  var LIST = /^(\s*)([-*+]|\d+[.)])\s+(.*)$/;
-  var HR = /^\s{0,3}([-*_])(\s*\1){2,}\s*$/;
-
-  function startsBlock(l) {
-    return /^\s*(```|~~~)/.test(l) || /^#{1,6}\s/.test(l) || /^\s*>/.test(l) || LIST.test(l) || HR.test(l);
-  }
-
-  function cells(l) { return l.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(function (c) { return c.trim(); }); }
-
-  function mdBlocks(lines, breaks) {
-    var out = [], i = 0, m;
-
-    function parseList(at) {
-      var first = LIST.exec(lines[at]), base = first[1].length, ordered = /^\d/.test(first[2]), items = [];
-      var i2 = at;
-      while (i2 < lines.length) {
-        var l = lines[i2];
-        if (/^\s*$/.test(l)) {
-          var j = i2 + 1;
-          while (j < lines.length && /^\s*$/.test(lines[j])) j++;
-          var nm = j < lines.length && LIST.exec(lines[j]);
-          if (nm && (nm[1].length > base || (nm[1].length === base && /^\d/.test(nm[2]) === ordered))) { i2 = j; continue; }
-          break;
-        }
-        var im = LIST.exec(l);
-        if (!im) {
-          if (items.length && l.search(/\S/) > base) { items[items.length - 1].t += " " + l.trim(); i2++; continue; }
-          break;
-        }
-        var ind = im[1].length;
-        if (ind < base || (ind === base && /^\d/.test(im[2]) !== ordered)) break;
-        if (ind > base && items.length) {
-          var sub = parseList(i2);
-          items[items.length - 1].sub += sub.html; i2 = sub.next; continue;
-        }
-        items.push({ t: im[3], sub: "" }); i2++;
-      }
-      var tag = ordered ? "ol" : "ul";
-      var html = "<" + tag + ">" + items.map(function (it) {
-        var t = it.t.replace(/^\[ \]\s+/, "\u2610 ").replace(/^\[[xX]\]\s+/, "\u2611 ");
-        return "<li>" + mdInline(t) + it.sub + "</li>";
-      }).join("") + "</" + tag + ">";
-      return { html: html, next: i2 };
-    }
-
-    while (i < lines.length) {
-      var ln = lines[i];
-      if (/^\s*$/.test(ln)) { i++; continue; }
-
-      if ((m = /^\s*(```|~~~)/.exec(ln))) {
-        var buf = []; i++;
-        while (i < lines.length && lines[i].trim().indexOf(m[1]) !== 0) buf.push(lines[i++]);
-        i++;
-        out.push("<pre><code>" + esc(buf.join("\n")) + "</code></pre>");
-        continue;
-      }
-      if ((m = /^(#{1,6})\s+(.*?)(?:\s+#+)?\s*$/.exec(ln))) {
-        out.push("<h" + m[1].length + ">" + mdInline(m[2]) + "</h" + m[1].length + ">");
-        i++; continue;
-      }
-      if (HR.test(ln)) { out.push("<hr>"); i++; continue; }
-
-      if (ln.indexOf("|") > -1 && i + 1 < lines.length && lines[i + 1].indexOf("|") > -1 &&
-          /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(lines[i + 1])) {
-        var head = cells(ln);
-        var al = cells(lines[i + 1]).map(function (c) { return /^:-*:$/.test(c) ? "center" : /-:$/.test(c) ? "right" : ""; });
-        i += 2;
-        var rows = [];
-        while (i < lines.length && lines[i].indexOf("|") > -1 && !/^\s*$/.test(lines[i])) rows.push(cells(lines[i++]));
-        var cell = function (tag, c, k) { return "<" + tag + (al[k] ? ' style="text-align:' + al[k] + '"' : "") + ">" + mdInline(c || "") + "</" + tag + ">"; };
-        out.push("<table><thead><tr>" + head.map(function (c, k) { return cell("th", c, k); }).join("") + "</tr></thead><tbody>" +
-          rows.map(function (r) { return "<tr>" + head.map(function (_, k) { return cell("td", r[k], k); }).join("") + "</tr>"; }).join("") +
-          "</tbody></table>");
-        continue;
-      }
-      if (/^\s*>/.test(ln)) {
-        var q = [];
-        while (i < lines.length && /^\s*>/.test(lines[i])) q.push(lines[i++].replace(/^\s*>\s?/, ""));
-        out.push("<blockquote>" + mdBlocks(q, breaks) + "</blockquote>");
-        continue;
-      }
-      if (LIST.test(ln)) { var r = parseList(i); out.push(r.html); i = r.next; continue; }
-
-      var p = [ln]; i++;
-      while (i < lines.length && !/^\s*$/.test(lines[i]) && !startsBlock(lines[i])) p.push(lines[i++]);
-      var html = "";
-      for (var k = 0; k < p.length; k++) {
-        var hard = /(\s{2,}|\\)$/.test(p[k]);
-        html += mdInline(p[k].replace(/(\s{2,}|\\)$/, "").trim());
-        if (k < p.length - 1) html += (breaks || hard) ? "<br>" : " ";
-      }
-      out.push("<p>" + html + "</p>");
-    }
-    return out.join("");
-  }
-
-  function mdToHtml(text, breaks) {
-    var clean = text.replace(/\r\n?/g, "\n").replace(/<!--[\s\S]*?-->/g, "");
-    return mdBlocks(clean.split("\n"), breaks);
-  }
-
-  // ---- Preview / Source ----
-  var mode = "preview", lastText = null, lastBreaks = false;
-  var modeBtns = document.querySelectorAll(".ed-mode button");
-
-  function renderPreview(text, breaks) {
-    code.classList.add("pv"); posEl.hidden = true;
-    code.innerHTML = '<div class="md">' + mdToHtml(text, breaks) + "</div>";
-    var n = text.replace(/\r\n?/g, "\n").replace(/\n+$/, "").split("\n").length;
-    countEl.textContent = n + " " + (n === 1 ? "line" : "lines");
-  }
-
-  function draw() {
-    for (var i = 0; i < modeBtns.length; i++)
-      modeBtns[i].setAttribute("aria-pressed", modeBtns[i].getAttribute("data-mode") === mode ? "true" : "false");
-    if (lastText == null) return;
-    if (mode === "preview") renderPreview(lastText, lastBreaks); else renderSource(lastText);
-    code.scrollTop = 0;
-  }
-
-  function message(text) { code.innerHTML = '<div class="msg">' + esc(text) + "</div>"; countEl.textContent = ""; }
-
-  // ---- the two files ----
-  var DOCS = {
-    readme: {
-      file: "README.md",
-      gh: "https://github.com/" + REPO + "#readme",
-      breaks: false,
-      load: function () { return getReadme(); }
-    },
-    log: {
-      file: "CHANGELOG.md",
-      breaks: true,   // GitHub release notes keep every line break
-      gh: "https://github.com/" + REPO + "/releases/latest",
-      load: function () {
-        return getLatest().then(function (v) {
-          DOCS.log.gh = v.url || DOCS.log.gh;
-          var when = "";
-          if (v.date) { try { when = new Date(v.date).toLocaleDateString(document.documentElement.lang || undefined, { year: "numeric", month: "long", day: "numeric" }); } catch (e) {} }
-          var head = "# Rostr " + v.tag + "\n" + (when ? when + "\n" : "") + "\n";
-          var body = v.body.trim() ? v.body : tr("edNoNotes", "No change log was written for this release.");
-          return head + body;
-        });
-      }
-    }
-  };
-
-  var current = "readme", ticket = 0;
-
-  function show(id) {
-    current = id;
-    var mine = ++ticket;
-    var doc = DOCS[id];
-    nameEl.textContent = doc.file;
-    for (var i = 0; i < tabs.length; i++) {
-      var on = tabs[i].getAttribute("data-doc") === id;
-      tabs[i].setAttribute("aria-selected", on ? "true" : "false");
-      tabs[i].tabIndex = on ? 0 : -1;
-    }
-    ghLink.href = doc.gh;
-    code.scrollTop = 0;
-    lastText = null;
-    message(tr("edLoading", "Loading from GitHub..."));
-    doc.load().then(function (text) {
-      if (mine !== ticket) return;
-      lastText = text; lastBreaks = !!doc.breaks;
-      draw();
-      ghLink.href = doc.gh;
-    }).catch(function () {
-      if (mine !== ticket) return;
-      message(tr("edError", "Could not load this from GitHub right now. Use Open on GitHub instead."));
-    });
-  }
-
-  var lastFocus = null;
-  function open(id) {
-    lastFocus = document.activeElement;
-    root.hidden = false;
-    document.body.style.overflow = "hidden";
-    show(id);
-    closeBtn.focus();
-  }
-  function close() {
-    root.hidden = true;
-    document.body.style.overflow = "";
-    if (lastFocus && lastFocus.focus) lastFocus.focus();
-  }
-
-  var openers = document.querySelectorAll("[data-open]");
-  for (var i = 0; i < openers.length; i++) {
-    openers[i].addEventListener("click", function (e) {
-      // With a modifier key the link behaves normally and opens GitHub in a new tab.
-      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
-      e.preventDefault();
-      open(this.getAttribute("data-open"));
-    });
-  }
-  for (var t = 0; t < tabs.length; t++) {
-    tabs[t].addEventListener("click", function () { show(this.getAttribute("data-doc")); });
-  }
-  for (var mb = 0; mb < modeBtns.length; mb++) {
-    modeBtns[mb].addEventListener("click", function () { mode = this.getAttribute("data-mode"); draw(); });
-  }
-  closeBtn.addEventListener("click", close);
-  root.addEventListener("mousedown", function (e) { if (e.target === root) close(); });
-
-  document.addEventListener("keydown", function (e) {
-    if (root.hidden) return;
-    if (e.key === "Escape") { e.preventDefault(); close(); return; }
-    if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && document.activeElement && document.activeElement.classList.contains("ed-tab")) {
-      e.preventDefault();
-      var next = current === "readme" ? "log" : "readme";
-      show(next);
-      document.getElementById("ed-tab-" + next).focus();
-      return;
-    }
-    if (e.key === "Tab") {   // keep the keyboard inside the window
-      var f = [tabs[0], tabs[1], modeBtns[0], modeBtns[1], code, ghLink, closeBtn];
-      var first = f[0], last = f[f.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    }
-  });
-
-  // Ln / Col in the status bar follows the cursor, as in an editor.
-  document.addEventListener("selectionchange", function () {
-    if (root.hidden) return;
-    var sel = window.getSelection();
-    if (!sel || !sel.rangeCount || !sel.anchorNode) return;
-    var el = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode;
-    var row = el && el.closest ? el.closest(".l") : null;
-    if (!row || !code.contains(row)) return;
-    var ln = parseInt(row.firstChild.textContent, 10) || 1, col = 1;
-    try {
-      var r = document.createRange();
-      r.setStart(row.lastChild, 0);
-      r.setEnd(sel.anchorNode, sel.anchorOffset);
-      col = r.toString().length + 1;
-    } catch (e) {}
-    posEl.textContent = "Ln " + ln + ", Col " + col;
-  });
-})();
-</script>
-<script>
-(function () {
-  var TH = {"Dark": ["0F1117", "12141B", "171A22", "232838", "262B38", "7C8499", "9AA1B5", "C9CEDC", "E6E8EE", "3D6BFF"], "Midnight": ["070A14", "0A0E1C", "0E1428", "1A2548", "1C2750", "7886B0", "98A6CC", "C3CCE6", "E8EDFB", "6C8CFF"], "AMOLED": ["000000", "050505", "0D0D0D", "1F1F1F", "242424", "808080", "A0A0A0", "CCCCCC", "F2F2F2", "3D6BFF"], "Ocean": ["0A1418", "0D1A1F", "11222A", "1C3A45", "1F404C", "7BA3B1", "9CC0CC", "C6DDE5", "E6F3F7", "14B8A6"], "Forest": ["0E1410", "111A14", "16201A", "233629", "27392D", "86A18F", "A5BDAD", "CDDCD2", "EAF3EC", "3FB950"], "Sunset": ["16100F", "1C1413", "241A18", "3B2A26", "42302B", "A88C83", "C4ABA2", "E3D2CB", "F7EEEA", "F97316"], "Rose": ["150F13", "1B1318", "23181F", "3B2A36", "432F3C", "AD8F9C", "C8AEBA", "E6D2DB", "F8EEF2", "EC4899"], "Light": ["F3F5F9", "E9ECF3", "FFFFFF", "E4E8F0", "7F8AA3", "5F6A82", "4A5468", "2E3648", "141A28", "3D6BFF"]}, LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAALm0lEQVR42u1cS2gTXRt+5pI0adNrmrqotkIFK4Ig1UXFW60gigtR0AoqiHVRdeulFVSQVtSFi1KrO7uweEOreAGxKgUFv4gI1YXWgtUitfXWtI25zEz+xf+f+SeTmclMm5kk/ebAIZNJMpN5n/f+vudQc+fOjcEeaRu0TQIbABsAe9gA2ADYwwbABsAeNgA2APawAbABsIcNwL9msOm8eSwWA0VRiMVSnw+kKCruHjYAMsIrHSu9nwnh5dfMRCDYdBFeD7H1gCEnqtpvlCQtEwBhM4HrjZxTU2PJwFGSgkxQT2w6iU+O5a8zlSwpxxMCK6kmqVSkC4i0qaBYLAaaphMIMhMgKIpK4HApuPLP9UpSVgOgxN3keHx8HIIgiJw4UwMci8UgCIIIrsvlgtvtBk3T4nkpEHLuTwcIlntB5CEnJyexefNm7Ny5E263OyXXFgQB4+PjGB4exrt37/D27VsMDAwgHA6jsLAQTqcTPM+L/4Gm6QT7YLVKoswuykslgHDm1NQUqqur8eLFC5EIZoxQKAS/349r166hp6cHY2NjKCkpESWCSIKU2HKbkdWRsJpxDYfDqK6uBk3TiEQi4Hk+pZPjOPA8D5fLhVWrVqGjowN9fX3Yv38/pqamEAwGwTBMnMpKdTyS8akI8uAMw6R8siwrEpiAUlVVhY6ODvT09KC8vBy/fv0Cy7K6vLSsB0CPn27WfQkogiCA4zjU19fj6dOnWLNmDcbGxsCybJwkWMn9lgGg5qcLgmDdg9I0WJYFx3GYM2cOenp6sHHjRhGEmQSDWaeCKIpCOBwWjWEqdT/HcZrAsiwLQRDgcrnQ3d2N2tpa/P79W9EmWCERpnpBapEux3HIzc3FgwcPsHjxYtPuTbwupcHzPBiGwZcvX7Bq1SpMTEwgJydH/I3cGzJLXVruhkpdRK/Xi/Xr1yM3NzcuIDMST0hfc3JyUFlZidraWixdujSO0EqD4ziwLIsbN25g9+7d8Hq9Ce7prAJACgRFUYhEIpicnIwzgEpgGQEjFovB4/FgxYoVOH78OFavXg1BEJJKwpYtW/D48WMUFRWJ37dCCiwHQE5geTQ6HeMnvzbHcZiYmABN0zh58iSam5vB83wcUeUAvHz5Ehs2bEBeXl5cXslsKWAKCgpOWeGCKj0I4Vq54ZO/1zvJ7yiKgtvthsPhwP3798HzPOrr6xUlgTgCFRUV6Ovrw8DAgJgaUfvPWQWAHmDkD0uIJOdCrSknDgHC4/Hg0aNHqK6uxpIlS0RJkEsBTdMIhUK4d+8ePB6P6EmZDQBl1QINPRGmUXdPTW1JpYKiKNHg+/1+eL3eBEISyRgcHERtba0YoVuhhmirOV7O2fLv6OFyMolOJ69K1xUEAbm5ufj8+TO6urpAURR4nk9QQwAwf/58VFVVIRQKmZokTFsgppfoRlIaUmCkQNA0Lb4ngdedO3cgCIKiW0rOL1iwAJFIxLRujYyJhJMR2ujUkrRYLAaXy4VPnz7h27dvimkQ8r68vFwxkjYLjLQ2Zk2H0MlUk1rpkWEYTE5OYmRkRPM/FRQUJMQhZkrCrOiMU5MA+XeIq2qUqGZmbf8VrYnE8LrdbpSWlmoSdWJiwtK6cNpaE/VyoFZDlVb0LO+2CIfDWLRoEebNmxfn+civOTw8bJkHZLkEyNO80wVKSUcrJf2kGdFgMIhNmzbB4XCA47jEiPR/RZvBwUE4nU7LuujYdHC6GUZNDQDC/WVlZWhsbFTkfhKIDQ0NYXBwEC6Xy7KqGGsl8Y30gio1bBkBgEyWZTE2Nob29nZUVFQopqcJAM+fP8fPnz9RVlYmpqWzFgA9+llPSsJo6VKaw6FpGiMjI2hsbMShQ4dUawNEIm7dugWHw2GZB2QaAMm6DNSSZ2oPrUUE+fVJaXFqagqTk5NoampCe3u7ak2AgOL3+9HX14eCgoKERNys8IKIPuZ5HsFgMMEfT1VjbjQaBQAsXLgQzc3N2LVrl65ut/PnzyMajYr9qlppj4wGQK0AQ7KSLpcLK1asgMPhSEk/qPQeNE1j3rx5WLduHTZt2oS8vLy4EqN8kJLk/fv3ce/ePRQVFSl2VJspCSlPR6sV4qPRKIqKinDt2jXU1NRYInVa9WCikkZHR7Fy5UqMjo7C5XIlpEj05K4yMg6QBks0TSMQCKChoQE1NTXgOG5aFa9klTBpiwuxB1qGmud57Nu3D0NDQ8jNzY3LI1nVI2qqFyRXLyUlJaYYOCPEkkpFY2MjHj16BJ/PB47jLI2ALYuEpVyqVA600gngOA4MwyAcDmPPnj24cuUKfD5fXBeEFXVg0wGQu5RWFTe0CE9RFFiWxYcPH7BhwwZ0d3fD5/OB53nNxoFZEQnrXXli1CvSI02E8OFwGJcvX0ZbWxv+/PmjSfysD8S0vKFkxDLywMmAjcVi+P79Ox4+fIiLFy/izZs3KCgoQFFRkajzpSXM6diUjAJgpmomGAxidHQ06YPHYjE4HA6Ul5ergkCM7e3bt3Hw4EHk5eXB6/WKawbU1E3Wq6DpZD8JsXp7e7F9+3YxHaC2xJQEdXfv3sXatWsV/X0S0e7duxddXV3o7+9XTHekQ+9b6gUZ0e08zyMUCiEajSIajSISiYiv5DgajYLjOASDQRw7dky1g4Ek8dxuN1pbW0VDbMStnTUAGDGqNE0nLDViWTZukpji1atXuHTpktheKB8Mw4Dneaxfvx47d+6MW5aUCR6aKQDMlHu0WhalQPE8j8LCQpw5c0YsIyqBQAh8+vRp+Hw+RCKRuIbgdG9XQJuhbmYKgNIk0iH1XFwuF0ZHR3HixAlVTpY23x49ehR//vxJWzCY8SpICQQ50aXneJ5HaWkprl69imfPnokqRw2EAwcOYPny5WLng9pSpFm3SG+6Iq7VTyp9zzAMmpubEQ6HVQ0yWUHT1tamCFK67IBlXpARD0SN0PLPCGcXFhbin3/+0WWQ6+vr0dDQgF+/fonVMyPl0qxVQdN5ILXUgBwgnudRXFyMs2fP4uvXr0kN8qlTp1BaWhonMbNWAox6Gcm6p9Wkwul06jbIlZWVOHLkSJxBTpctyNjWxGSJMfkxMcjd3d3o7e1NapCbmpqwfPlyBAKBGe9TlNEAGAnz9X5HagPky5ocDgdaWloQCoWSGuTW1laxepYuKaCt5ly910jWGqgEgiAIyM/Ph9/vR2dnpy6DTCJkaS7JShCySgXp+Y0gCCguLsa5c+cwNDSkyyD7fD5VFzarVFAq9mNL1uuv9Lk0WAMAp9OJHz9+6I6QDx8+jPHxcdUiftbaAD3rvpLpeSNAk/M8z8Pr9eL69et48uSJLoO8bNkyBAKBhI0EsxIArXVbM7mWVuFEnqYgBvn48eMIhUKKulweIcu3TJg1cQB5KIfDIfbtCIIgTnKOZVlN4IyuK8jPz8fr16/R2dkJhmEQjUbj7kuKPtFoFHV1ddixYwcCgYClqsgSFQT8d5+ejx8/gmEY5OTkxGU3nU4nGIbBwMBAwhYzWoCoSQGZgiCgpKQEZ8+exfv37+F0OuPuSybpiN66dauhwk0qhunNuYQQhYWFuHnzJioqKlBXV5ewSUd/fz8uXLiA/Px8Q7358i1r5EEVy7L4+/cvtm3bhpaWFnGzQPmYmprCpUuX4Ha7LVVDpveGStWQIAiYmJiA0+lM8E7C4TA8Ho9YsTJSs1W6J3E9yQLsUCiEYDCInJwcRS+KcL7H47G0QdeUvSK0CELWYsm5THp+Ot1pWsBLd8FSW+whX2esxyXOeBWktBOtkjtIzsv7c6ZzL6V7ytcIKxFTaw2BmTaBtYLwegMxrWTbTIHXk+KwguMtN8JaBLECeCUJmW7WNasAUGqmSubLpyqRp5T+0COFs3L7+uk+ZCraW9QW/ulZhD1rVJCRaDbl24HpXIWZTinIWAmYLfdNey7IHjYANgD2sAGwAbCHDYANgD1sAGwA7GEDYANgj/+P/wBZebBq9ZyFBgAAAABJRU5ErkJggg==";
-  var $ = function (q, r) { return (r || document).querySelector(q); }, $$ = function (q, r) { return Array.prototype.slice.call((r || document).querySelectorAll(q)); };
-
-  // app menu: Play / Library / Friends (Settings and Open README stay as pictures)
-  var nav = $$('.win [data-page]');
-  nav.forEach(function (b) { b.addEventListener('click', function () {
-    nav.forEach(function (x) { x.classList.toggle('on', x === b); });
-    $$('.win [data-pg]').forEach(function (p) { p.hidden = p.getAttribute('data-pg') !== b.getAttribute('data-page'); });
-  }); });
-  var off = false, ob = $('#offbtn');
-  ob.addEventListener('click', function () {
-    off = !off; ob.textContent = 'Offline friends: ' + (off ? 'shown' : 'hidden');
-    $$('[data-off]').forEach(function (r) { r.style.display = off ? '' : 'none'; });
-    $('#fcount').textContent = off ? '3 online, 1 offline' : '3 online';
-  });
-  $$('[data-off]').forEach(function (r) { r.style.display = 'none'; });
-
-  // settings tabs + switches
-  var sp = $$('[data-sp]');
-  sp.forEach(function (b) { b.addEventListener('click', function () {
-    sp.forEach(function (x) { x.classList.toggle('on', x === b); });
-    $$('[data-sp-pg]').forEach(function (p) { p.hidden = p.getAttribute('data-sp-pg') !== b.getAttribute('data-sp'); });
-  }); });
-  $$('#setwin .sw').forEach(function (s) { s.addEventListener('click', function () { s.classList.toggle('on'); }); });
-
-  // themes: the same colours the launcher uses (Core/ThemeManager.cs)
-  var K = ['bg', 'bg2', 'card', 'line', 'dim', 'muted', 'soft', 'text2', 'text', 'acc'], win = $('#setwin'), mt = $('#mt');
-  Object.keys(TH).forEach(function (n) {
-    var b = document.createElement('button'); b.type = 'button'; b.setAttribute('data-theme', n); b.setAttribute('aria-label', n); b.title = n;
-    b.style.setProperty('--b', '#' + TH[n][0]); b.style.setProperty('--a', '#' + TH[n][9]); mt.appendChild(b);
-  });
-  function theme(n) {
-    K.forEach(function (k, i) { win.style.setProperty('--w' + k, '#' + TH[n][i]); });
-    $$('[data-theme]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-theme') === n ? 'true' : 'false'); });
-    $('#tname').textContent = n;
-  }
-  $$('[data-theme]').forEach(function (b) { b.addEventListener('click', function () { theme(b.getAttribute('data-theme')); }); });
-  theme('Dark');
-
-  // Discord card: same fields Rostr sends (details, state, large/small image, timer, buttons)
-  var M = {
-    game:   { d: 'Adopt Me!', s: 'Roblox \u00b7 by Uplift Games', big: '<span style="position:absolute;inset:0;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,#3D6BFF,#8B5CF6)">A</span><span class="sm"><img alt="" src="' + LOGO + '"></span>', b: ['Get Rostr', 'See game page'] },
-    browse: { d: 'Browsing servers', s: 'Adopt Me!', big: '<img alt="" src="' + LOGO + '">', b: ['Get Rostr'] },
-    hidden: { d: 'Playing a Roblox game', s: 'Roblox', big: '<img alt="" src="' + LOGO + '">', b: ['Get Rostr'] }
-  }, mode = 'game', secs = 42 * 60 + 17;
-  function clock() { var h = Math.floor(secs / 3600), m = Math.floor(secs / 60) % 60, s = secs % 60, p = function (x) { return (x < 10 ? '0' : '') + x; };
-    $('#dxel').textContent = (h ? h + ':' + p(m) : p(m)) + ':' + p(s) + ' elapsed'; }
-  function dx(k) {
-    mode = k; var c = M[k];
-    $('#dxbig').innerHTML = c.big; $('#dxd').textContent = c.d; $('#dxs').textContent = c.s;
-    $('#dxb').innerHTML = c.b.map(function (t) { return '<a>' + t + '</a>'; }).join('');
-    $$('[data-dx]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-dx') === k ? 'true' : 'false'); });
-  }
-  $$('[data-dx]').forEach(function (b) { b.addEventListener('click', function () { dx(b.getAttribute('data-dx')); }); });
-  dx('game');
-  window.__rostrGame = function (g) {
-    var e = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
-    M.game.d = g.name; M.game.s = 'Roblox \u00b7 by ' + g.by; M.browse.s = g.name;
-    M.game.big = '<span style="position:absolute;inset:0;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,#3D6BFF,#8B5CF6)">' + e(g.name.charAt(0)) + '</span>' +
-      (g.icon ? '<img class="gi" alt="" referrerpolicy="no-referrer" onerror="this.remove()" src="' + e(g.icon) + '">' : '') +
-      '<span class="sm"><img alt="" src="' + LOGO + '"></span>';
-    dx(mode);
-  };
-  clock(); setInterval(function () { secs++; clock(); }, 1000);
-})();
-</script>
-<script>
-/* Live data: random public Roblox players (from a public friends list) with their headshots, and real game names, creators and icons.
-   Every request tries roblox.com first, then a public mirror (roproxy.com) in case the browser blocks it. If both fail, the sample content stays. */
-(function () {
-  var $$ = function (q) { return Array.prototype.slice.call(document.querySelectorAll(q)); };
-  var SEED_USER = 156;
-  var PLACES = [920587237, 2753915549, 4924922222, 1962086868, 142823291, 606849621, 286090429, 189707];
-  function ok(r) { if (!r.ok) throw new Error(r.status); return r.json(); }
-  function api(u) { return fetch(u).then(ok).catch(function () { return fetch(u.replace(/\.roblox\.com/, '.roproxy.com')).then(ok); }); }
-  function pick(a, n) { a = a.slice(); var o = []; while (o.length < n && a.length) o.push(a.splice(Math.floor(Math.random() * a.length), 1)[0]); return o; }
-  function bg(el, u) {
-    var i = new Image(); i.referrerPolicy = 'no-referrer';
-    i.onload = function () {
-      el.dataset.g = el.dataset.g || getComputedStyle(el).backgroundImage;
-      el.style.backgroundImage = 'url("' + u + '"),' + el.dataset.g;
-      el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center'; el.style.color = 'transparent';
-    };
-    i.src = u;
-  }
-  function games() {
-    return Promise.all(pick(PLACES, 4).map(function (p) {
-      return api('https://apis.roblox.com/universes/v1/places/' + p + '/universe').then(function (r) { return r.universeId; });
-    })).then(function (U) {
-      var q = U.join(',');
-      return Promise.all([api('https://games.roblox.com/v1/games?universeIds=' + q),
-        api('https://thumbnails.roblox.com/v1/games/icons?universeIds=' + q + '&returnPolicy=PlaceHolder&size=150x150&format=Png')]).then(function (r) {
-        var info = {}, ic = {};
-        r[0].data.forEach(function (x) { info[x.id] = x; }); r[1].data.forEach(function (x) { ic[x.targetId] = x.imageUrl; });
-        return U.map(function (u) { var g = info[u] || {}; return { name: g.name || 'Roblox game', by: (g.creator && g.creator.name) || 'Roblox', icon: ic[u] }; });
-      });
-    });
-  }
-  function players() {
-    // try random account IDs; non-existing or banned ones are skipped, then keep 4 that have a real headshot
-    var ids = []; while (ids.length < 16) ids.push(1000000 + Math.floor(Math.random() * 2500000000));
-    return Promise.all(ids.map(function (id) {
-      return api('https://users.roblox.com/v1/users/' + id).then(function (u) { return u && !u.isBanned && u.name ? u : null; }).catch(function () { return null; });
-    })).then(function (L) {
-      L = L.filter(Boolean);
-      if (!L.length) throw new Error('no players');
-      return api('https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=' + L.map(function (u) { return u.id; }).join(',') + '&size=150x150&format=Png').then(function (t) {
-        var m = {}; t.data.forEach(function (x) { if (x.state === 'Completed' && x.imageUrl) m[x.targetId] = x.imageUrl; });
-        return L.filter(function (u) { return m[u.id]; }).slice(0, 4).map(function (u) { return { name: u.name, img: m[u.id] }; });
-      });
-    });
-  }
-  function load() {
-    Promise.all([games().catch(function () { return null; }), players().catch(function () { return null; })]).then(function (r) {
-      var G = r[0], P = r[1], lc = $$('.lc'), fc = $$('.fc');
-      if (G && G.length) {
-        G.forEach(function (g, i) {
-          if (!lc[i]) return;
-          lc[i].querySelector('b').textContent = g.name; lc[i].querySelector('span').textContent = 'by ' + g.by;
-          if (g.icon) bg(lc[i].querySelector('.ic'), g.icon);
-        });
-        $$('.stats b')[2].textContent = G[0].name;
-        window.__rostrGame(G[0]);
-      }
-      if (P && P.length) P.forEach(function (p, i) {
-        if (!fc[i]) return;
-        fc[i].querySelector('b').textContent = p.name;
-        if (p.img) bg(fc[i].querySelector('.av'), p.img);
-        if (G && G[i] && i < 2) fc[i].querySelector('span').textContent = 'Playing ' + G[i].name;
-      });
-    });
-  }
-  load();
-  document.getElementById('frefresh').addEventListener('click', load);
-})();
-</script>
-<script>
-(function(){
-  var root=document.documentElement, b=document.getElementById("modebtn"), mq=window.matchMedia("(prefers-color-scheme:dark)");
-  function isDark(){var m=root.getAttribute("data-mode");return m?m==="dark":mq.matches}
-  function sync(){
-    var d=isDark();
-    b.setAttribute("aria-label",d?"Switch to light mode":"Switch to dark mode");
-    b.title=d?"Switch to light mode":"Switch to dark mode";
-    var t=document.querySelector('meta[name="theme-color"]'); if(t)t.setAttribute("content",d?"#0D0F15":"#F3F5FA");
-  }
-  b.addEventListener("click",function(){
-    var m=isDark()?"light":"dark";
-    root.setAttribute("data-mode",m);
-    try{localStorage.setItem("rostr-mode",m)}catch(e){}
-    sync();
-  });
-  sync();
-})();
+// Newest version from GitHub. If it fails, the buttons still work.
+fetch("https://api.github.com/repos/stepak2321/rostr.trebka.net/releases/latest",{headers:{Accept:"application/vnd.github+json"}})
+ .then(function(r){return r.ok?r.json():Promise.reject()})
+ .then(function(j){if(j&&j.tag_name){document.getElementById("ver").textContent=j.tag_name.replace(/^v/,"")}})
+ .catch(function(){document.getElementById("ver").textContent="on GitHub"});
 </script>
 </body>
 </html>

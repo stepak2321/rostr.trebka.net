@@ -21,8 +21,10 @@
             <StackPanel Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="16,0,0,0">
                 <TextBlock x:Name="UpdatedText" Foreground="{DynamicResource ThMuted}" FontSize="11.5"
                            HorizontalAlignment="Right"/>
-                <Button x:Name="RefreshBtn" Content="Refresh" Padding="14,6" Margin="0,6,0,0" Click="Refresh_Click"
-                        HorizontalAlignment="Right"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
+                    <Button x:Name="RequestBtn" Content="Request a game" Padding="14,6" Margin="0,0,8,0" Click="Request_Click"/>
+                    <Button x:Name="RefreshBtn" Content="Refresh" Padding="14,6" Click="Refresh_Click"/>
+                </StackPanel>
             </StackPanel>
         </Grid>
 

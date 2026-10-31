@@ -50,6 +50,18 @@ public partial class TrendingView : UserControl
             _ = LoadListAsync(false);
     }
 
+    /// <summary>Opens a prefilled "Game request" issue (template: .github/ISSUE_TEMPLATE/game_request.yml).</summary>
+    private void Request_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
+                $"https://github.com/{ProjectInfo.GitHubRepo}/issues/new?template=game_request.yml&title=" +
+                Uri.EscapeDataString("Game request: ")) { UseShellExecute = true });
+        }
+        catch { /* no browser available: nothing to do */ }
+    }
+
     private void Refresh_Click(object sender, RoutedEventArgs e) => _ = LoadListAsync(true);
 
     // ---------- Game list ----------

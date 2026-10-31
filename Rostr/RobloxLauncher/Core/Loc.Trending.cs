@@ -22,5 +22,8 @@ public static partial class Loc
         "NOW|TEĎ|JETZT|AHORA|MAINTENANT|TERAZ|AGORA|СЕЙЧАС|ŞİMDİ",
         "PEAK|MAXIMUM|SPITZE|PICO|PIC|SZCZYT|PICO|ПИК|ZİRVE",
         "LOWEST|MINIMUM|TIEFSTWERT|MÍNIMO|MINIMUM|MINIMUM|MÍNIMO|МИНИМУМ|EN DÜŞÜK",
+        "Request a language|Požádat o jazyk|Sprache anfragen|Pedir un idioma|Demander une langue|Poproś o język|Pedir um idioma|Запросить язык|Dil iste",
+        "Is your language missing? Open an issue on GitHub with its name and it may get added.|Chybí tvůj jazyk? Otevři na GitHubu issue s jeho názvem a možná ho přidáme.|Fehlt deine Sprache? Eröffne auf GitHub ein Issue mit ihrem Namen, vielleicht wird sie hinzugefügt.|¿Falta tu idioma? Abre un issue en GitHub con su nombre y quizá lo añadamos.|Ta langue manque ? Ouvre une issue sur GitHub avec son nom et elle sera peut-être ajoutée.|Brakuje Twojego języka? Otwórz zgłoszenie na GitHubie z jego nazwą, a może zostanie dodany.|Seu idioma não está na lista? Abra uma issue no GitHub com o nome dele e talvez seja adicionado.|Нет вашего языка? Создайте issue на GitHub с его названием, и он может быть добавлен.|Dilin yok mu? GitHub’da adıyla bir issue aç, eklenebilir.",
+        "Request a game|Požádat o hru|Spiel anfragen|Pedir un juego|Demander un jeu|Poproś o grę|Pedir um jogo|Запросить игру|Oyun iste",
     };
 }

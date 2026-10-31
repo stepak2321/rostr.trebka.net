@@ -25,7 +25,7 @@ public static class Trending
     private static HttpClient CreateClient()
     {
         var c = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
-        c.DefaultRequestHeaders.UserAgent.ParseAdd("Rostr/1.3");
+        c.DefaultRequestHeaders.UserAgent.ParseAdd("Rostr/1.4");
         return c;
     }
 

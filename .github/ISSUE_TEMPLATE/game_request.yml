@@ -1,0 +1,17 @@
+name: Game request (Trending)
+description: Ask for a game to be added to the Trending list
+title: "Game request: "
+labels: ["trending"]
+body:
+  - type: input
+    id: link
+    attributes:
+      label: Roblox game link or place ID
+      description: "For example https://www.roblox.com/games/920587237/Adopt-Me or just 920587237."
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why should it be on the list?
+      description: Optional. For example "popular right now" or "I play it every day".

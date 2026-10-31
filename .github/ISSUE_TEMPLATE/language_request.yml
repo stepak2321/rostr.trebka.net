@@ -1,0 +1,22 @@
+name: Language request
+description: Ask for a new language in Rostr
+title: "Language request: "
+labels: ["language"]
+body:
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      description: Name of the language, in English and in the language itself (for example "Italian / Italiano").
+    validations:
+      required: true
+  - type: dropdown
+    id: help
+    attributes:
+      label: Can you help translate?
+      description: Rostr has a few hundred short texts. Native speakers make the best translations.
+      options:
+        - "Yes, I can translate or check the texts"
+        - "No, I only want to ask for it"
+    validations:
+      required: true

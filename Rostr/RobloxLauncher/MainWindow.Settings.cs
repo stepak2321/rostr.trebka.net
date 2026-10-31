@@ -97,6 +97,11 @@ public partial class MainWindow : Window
         UpdateMediaKeysUi();
     }
 
+    /// <summary>Opens a prefilled "Language request" issue (template: .github/ISSUE_TEMPLATE/language_request.yml).</summary>
+    private void LangRequest_Click(object sender, RoutedEventArgs e) =>
+        OpenUrl($"https://github.com/{ProjectInfo.GitHubRepo}/issues/new?template=language_request.yml&title=" +
+                Uri.EscapeDataString("Language request: "));
+
     private void ThemeBtn_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: string name }) return;

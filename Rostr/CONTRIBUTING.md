@@ -35,6 +35,10 @@ build.bat  Start.bat  Clean.bat
 - **Never commit** cookies, `accounts.json`, logs or any real account data, not even in examples or screenshots.
 - Open a pull request that says what changed and why. By contributing you agree your work is licensed under the [MIT License](LICENSE).
 
+## Trending list (maintainers)
+
+The Trending page reads `trending/index.json` and `trending/data/*.json`, which `.github/workflows/trending.yml` writes every hour (at :07, GitHub may be a few minutes late) with `trending/collect.py`. To add a game from a *Game request* issue, add its place ID to `trending/places.json` (at most 100). Pushing that file starts the workflow right away. To add a language from a *Language request* issue, see `Core/Loc.cs`.
+
 ## Publishing a release (maintainers)
 
 1. Run `build.bat` and enter the version, for example `1.4.0`.
