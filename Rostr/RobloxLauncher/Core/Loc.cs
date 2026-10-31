@@ -32,7 +32,7 @@ public static partial class Loc
         "Join|Připojit|Beitreten|Unirse|Rejoindre|Dołącz|Entrar|Войти|Katıl",
         "Refresh|Obnovit|Aktualisieren|Actualizar|Actualiser|Odśwież|Atualizar|Обновить|Yenile",
         "Load more|Načíst další|Mehr laden|Cargar más|Charger plus|Wczytaj więcej|Carregar mais|Загрузить ещё|Daha fazla yükle",
-        "Random server|Náhodný server|Zufälliger Server|Servidor aleatorio|Serveur aléatoire|Losowy serwer|Servidor aleatório|Случайный сервер|Rastgele sunucu",
+        "Server hop|Přeskok serveru|Serverwechsel|Cambiar de servidor|Changer de serveur|Zmień serwer|Trocar de servidor|Сменить сервер|Sunucu değiştir",
         "Rejoin last server|Poslední server|Letzter Server|Último servidor|Dernier serveur|Ostatni serwer|Último servidor|Последний сервер|Son sunucu",
         "Detect regions|Zjistit regiony|Regionen erkennen|Detectar regiones|Détecter les régions|Wykryj regiony|Detectar regiões|Определить регионы|Bölgeleri algıla",
         "Most players|Nejvíce hráčů|Meiste Spieler|Más jugadores|Plus de joueurs|Najwięcej graczy|Mais jogadores|Больше игроков|En çok oyuncu",
@@ -89,7 +89,7 @@ public static partial class Loc
         _map = new();
         _templates = new();
         if (col <= 0) return;
-        foreach (var row in Table.Concat(Table2))
+        foreach (var row in Table.Concat(Table2).Concat(Table3).Concat(Table4))
         {
             var p = row.Split('|');
             if (p.Length <= col) continue;

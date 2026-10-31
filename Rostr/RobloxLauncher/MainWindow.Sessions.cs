@@ -26,9 +26,11 @@ public partial class MainWindow : Window
         s.Watcher.ServerAddress += (relay, rcc) => Dispatcher.InvokeAsync(() => OnServerAddress(s, relay, rcc));
         s.Watcher.GameJoined += (job, place, ip) => Dispatcher.InvokeAsync(() => OnGameJoined(s, job, place, ip));
         s.Watcher.GameClosed += () => Dispatcher.InvokeAsync(() => OnGameClosed(s));
+        s.Watcher.GameLeft += () => Dispatcher.InvokeAsync(() => OnGameLeft(s));
         s.Watcher.PidAdopted += pid => Dispatcher.InvokeAsync(() =>
         {
             s.Pid = pid;
+            ClientTags.Register(pid, s.AccountName);
             s.Overlay?.Attach(pid);
         });
         s.Watcher.Start(launchedAt, s.Pid);
@@ -72,6 +74,14 @@ public partial class MainWindow : Window
         _ = RefreshDiscordAsync();
     }
 
+    private void DiscordBrowseToggle_Click(object sender, RoutedEventArgs e)
+    {
+        S.DiscordShowBrowsing = !S.DiscordShowBrowsing;
+        S.Save();
+        UpdateSettingsUi();
+        _ = RefreshDiscordAsync();
+    }
+
     private void DiscordHideToggle_Click(object sender, RoutedEventArgs e)
     {
         S.DiscordHideGame = !S.DiscordHideGame;
@@ -96,7 +106,8 @@ public partial class MainWindow : Window
             if (s == null)
             {
                 // Not in a game: show that the launcher is open, and which game page is being browsed.
-                var browsing = GamePanel.Visibility == Visibility.Visible && _placeId != 0 && _gameName.Length > 0
+                // With "Show browsing servers" off, the status only says the launcher is open.
+                var browsing = S.DiscordShowBrowsing && GamePanel.Visibility == Visibility.Visible && _placeId != 0 && _gameName.Length > 0
                     ? _gameName : null;
                 _discord.SetIdle(browsing, S.DiscordHideGame, _launcherStartUtc);
                 return;
@@ -233,6 +244,15 @@ public partial class MainWindow : Window
     {
         s.Job = job;
 
+        // A join right after launching, or after leaving a game, can come from outside Rostr (for example
+        // the Roblox app). A teleport inside a game keeps JoinedUtc set, so it is not a fresh join.
+        var freshJoin = s.JoinedUtc == null;
+
+        // The session follows the game the client is really in, so the wiki and the other features
+        // see the new game and not the one this client was started with.
+        if (place > 0) s.PlaceId = place;
+        if (freshJoin && place > 0) TrackJoinedGame(place, job);
+
         // Playtime starts when the player is really in a game. A teleport to another place closes the
         // old game's time and starts the new one.
         var playPlace = place > 0 ? place : s.PlaceId;
@@ -268,6 +288,59 @@ public partial class MainWindow : Window
 
         CommitRegion(s);
         UpdatePlayButtons();
+
+        // Every server you really joined counts as visited, so Server hop never sends you back.
+        MarkVisited(playPlace, job);
+        if (s.HopPrompt)
+        {
+            s.HopPrompt = false;
+            _ = AskStayOrHopAsync(s, playPlace);
+        }
+    }
+
+    // Puts a game that was joined outside Rostr on top of the Recent list, so it shows in the Library.
+    private void TrackJoinedGame(long place, string job)
+    {
+        // Started from Rostr: RecordRecent already put it on top.
+        if (S.Recent.FirstOrDefault()?.PlaceId == place) return;
+
+        var known = (GameEntry?)S.Recent.FirstOrDefault(r => r.PlaceId == place)
+                    ?? S.Favorites.FirstOrDefault(f => f.PlaceId == place);
+        _discordGames.TryGetValue(place, out var cached);
+        var hasName = !string.IsNullOrEmpty(known?.Name) || cached != null;
+        var name = !string.IsNullOrEmpty(known?.Name) ? known!.Name : cached?.Name ?? "";
+        var icon = known?.IconUrl ?? cached?.IconUrl;
+
+        RecordRecent(place, name, icon, job);
+        if (LibraryPage.Visibility == Visibility.Visible) RefreshLibrary();
+        if (!hasName) _ = FillJoinedGameInfoAsync(place);
+    }
+
+    // Loads the real name and icon of a game that was added to Recent before its name was known.
+    private async Task FillJoinedGameInfoAsync(long place)
+    {
+        try
+        {
+            if (!_discordGames.TryGetValue(place, out var game))
+            {
+                game = await RobloxApi.GetGameAsync(place);
+                _discordGames[place] = game;
+            }
+
+            var entry = S.Recent.FirstOrDefault(r => r.PlaceId == place);
+            if (entry != null)
+            {
+                entry.Name = game.Name;
+                entry.IconUrl = game.IconUrl ?? entry.IconUrl;
+            }
+            if (S.Playtime.TryGetValue(place, out var st)) st.Name = game.Name;
+            S.Save();
+            if (LibraryPage.Visibility == Visibility.Visible) RefreshLibrary();
+        }
+        catch (Exception ex)
+        {
+            Log.Warn("Could not load info of the joined game: " + ex.Message);
+        }
     }
 
     private async Task ResolveRegionAsync(Session s, string ip)
@@ -309,6 +382,30 @@ public partial class MainWindow : Window
 
         if (GamePanel.Visibility == Visibility.Visible && _servers.Count > 0) ApplyFilter();
         if (LibraryPage.Visibility == Visibility.Visible) RefreshLibrary();
+    }
+
+    // The player left the server but the Roblox window is still open: stop the playtime and the "playing" Discord status.
+    private void OnGameLeft(Session s)
+    {
+        if (!_sessions.Contains(s)) return;
+        if (s.JoinedUtc == null && s.PresencePlace == 0) return;
+
+        FlushPlaytime(s, false);
+        s.JoinedUtc = null;
+        s.PlaytimePlace = 0;
+        s.PresenceStartUtc = null;
+        s.PresencePlace = 0;
+        s.Job = null;
+        // The server is gone: the next game must not inherit its address or region.
+        s.RelayIp = null;
+        s.RegionIp = null;
+        s.Region = null;
+        s.Overlay?.SetServer(null, null);
+        S.Save();
+
+        _ = RefreshDiscordAsync();
+        UpdatePlayButtons();
+        SetStatus("Left the game. Roblox is still open.", Busy);
     }
 
     private void OnGameClosed(Session s)

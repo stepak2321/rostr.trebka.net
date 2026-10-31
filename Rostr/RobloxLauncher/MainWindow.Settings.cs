@@ -94,6 +94,7 @@ public partial class MainWindow : Window
         foreach (var list in new ItemsControl[] { ServerList, FavList, RecentList, FriendsList, SearchResults })
             Loc.Apply(list, true);
         BuildAppearance();
+        UpdateMediaKeysUi();
     }
 
     private void ThemeBtn_Click(object sender, RoutedEventArgs e)
@@ -127,6 +128,7 @@ public partial class MainWindow : Window
             (4, SetAppearancePanel, TabAppearanceBtn),
             (5, SetDiscordPanel, TabDiscordBtn),
             (6, SetStoragePanel, TabStorageBtn),
+            (7, SetGalleryPanel, TabGalleryBtn),
         };
         foreach (var (id, panel, btn) in panels)
         {
@@ -148,16 +150,19 @@ public partial class MainWindow : Window
         SetToggle(FieldTimeToggle, S.OverlayShowTime);
         SetToggle(FieldRegionToggle, S.OverlayShowRegion);
         SetToggle(FieldUserToggle, S.OverlayShowUser);
+        UpdateMediaKeysUi();
         HotkeyBtn.Content = _capturingHotkey ? Loc.T("Press keys...") : HotkeyLabel;
-        OverlayShowDesc.Text = Loc.T($"Hotkey: {HotkeyLabel}. Turns the overlay on screen off without closing it.");
+        OverlayShowDesc.Text = Loc.T($"Hotkey: {HotkeyLabel}. Turns the stats overlay on screen off without closing it.");
         SetToggle(MultiToggle, S.MultiRoblox);
         SetToggle(MinimizeToggle, S.MinimizeOnLaunch);
         SetToggle(TrayToggle, S.CloseToTray);
         SetToggle(StartupToggle, S.RunAtStartup && StartupManager.IsEnabled);
         SetToggle(AutoBestToggle, S.AutoBestServer);
+        UpdateDimUi();
         SetToggle(CleanupToggle, S.AutoCleanup);
         SetToggle(DiscordToggle, S.DiscordEnabled);
         SetToggle(DiscordHideToggle, S.DiscordHideGame);
+        SetToggle(DiscordBrowseToggle, S.DiscordShowBrowsing);
 
         CornerTL.Background = S.OverlayCorner == 0 ? Accent : Dim;
         CornerTR.Background = S.OverlayCorner == 1 ? Accent : Dim;

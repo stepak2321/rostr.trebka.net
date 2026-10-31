@@ -35,15 +35,55 @@ public static class GameLauncher
         placeUrl = Uri.UnescapeDataString(placeUrl);
 
         // Safety: only accept Roblox's own servers
-        if (!Uri.TryCreate(placeUrl, UriKind.Absolute, out var parsed) ||
+        if (!Uri.TryCreate(placeUrl, UriKind.Absolute, out var parsed) || parsed == null ||
             !parsed.Host.EndsWith(".roblox.com", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("The link points to a non-Roblox server. Launch cancelled.");
 
         var m = Regex.Match(placeUrl, @"[?&]placeId=(\d+)", RegexOptions.IgnoreCase);
-        if (!m.Success)
+        var request = QueryValue(parsed, "request");
+        var followUser = string.Equals(request, "RequestFollowUser", StringComparison.OrdinalIgnoreCase);
+        if (followUser && (!long.TryParse(QueryValue(parsed, "userId"), out var userId) || userId <= 0))
+            throw new InvalidOperationException("The friend-join link is missing a valid user ID.");
+        if (!m.Success && !followUser)
             throw new InvalidOperationException("Could not find the game ID in the link.");
 
-        return new LaunchLink(ticket, placeUrl, tracker, launchTime, rloc, gloc, long.Parse(m.Groups[1].Value));
+        var placeId = m.Success ? long.Parse(m.Groups[1].Value) : 0;
+        return new LaunchLink(ticket, placeUrl, tracker, launchTime, rloc, gloc, placeId);
+    }
+
+    public static bool IsDirectJoin(LaunchLink link)
+    {
+        if (!Uri.TryCreate(link.PlaceUrl, UriKind.Absolute, out var uri) || uri == null) return false;
+
+        var request = QueryValue(uri, "request");
+        if (string.Equals(request, "RequestFollowUser", StringComparison.OrdinalIgnoreCase))
+            return long.TryParse(QueryValue(uri, "userId"), out var userId) && userId > 0;
+
+        var gameId = QueryValue(uri, "gameId") ?? QueryValue(uri, "gameInstanceId");
+        if (!string.IsNullOrEmpty(gameId) && Guid.TryParse(gameId, out _)) return true;
+
+        return string.Equals(request, "RequestPrivateGame", StringComparison.OrdinalIgnoreCase) &&
+               !string.IsNullOrWhiteSpace(QueryValue(uri, "accessCode"));
+    }
+
+    public static bool IsDirectJoinUri(string uri)
+    {
+        try { return IsDirectJoin(Parse(uri)); }
+        catch (ArgumentException) { return false; }
+        catch (InvalidOperationException) { return false; }
+    }
+
+    private static string? QueryValue(Uri uri, string name)
+    {
+        foreach (var part in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var separator = part.IndexOf('=');
+            if (separator <= 0 ||
+                !Uri.UnescapeDataString(part[..separator]).Equals(name, StringComparison.OrdinalIgnoreCase))
+                continue;
+            return Uri.UnescapeDataString(part[(separator + 1)..]);
+        }
+        return null;
     }
 
     public static Process? Launch(LaunchLink link, string versionDir, string? jobId = null)

@@ -37,6 +37,7 @@ public partial class MainWindow : Window
     private long _autoLaunchPlace;
     private string? _autoLaunchJob;
     private DateTime _autoLaunchUntil;
+    private bool _directWebLaunchPending;
 
     private string _sort = "most";
     private bool SortAscending => _sort == "fewest";
@@ -85,6 +86,7 @@ public partial class MainWindow : Window
         public long PlaytimePlace;      // the game the running playtime belongs to
         public DateTime? PresenceStartUtc;   // when this game was joined (for the Discord timer; never reset by the playtime flush)
         public long PresencePlace;
+        public bool HopPrompt;          // started by Server hop: ask Stay or Hop again once it joined
     }
 
     private readonly List<Session> _sessions = new();
@@ -141,6 +143,7 @@ public partial class MainWindow : Window
         var args = Environment.GetCommandLineArgs();
         _startHidden = args.Contains(StartupManager.Arg) &&
                        !args.Any(a => a.StartsWith("roblox-player:", StringComparison.OrdinalIgnoreCase));
+        _startHidden |= args.Skip(1).Any(SkipsRostr);
         if (_startHidden)
         {
             WindowState = WindowState.Minimized;
@@ -157,6 +160,7 @@ public partial class MainWindow : Window
         BuildAppearance();
         Loc.Apply(this);
         _ready = true;
+        InitMedia();
 
         OverlayWindow.Hidden = S.OverlayHidden;
         _multi.Status += msg => Dispatcher.InvokeAsync(() => SetStatus(msg, Ok));
@@ -180,12 +184,16 @@ public partial class MainWindow : Window
 
         _tray = new TrayIcon(BuildTrayMenu);
         _tray.OpenRequested += ShowFromTray;
+        InitDim();   // the dim menu key (Settings > Overlays)
         Application.Current.SessionEnding += (_, _) => _reallyExit = true;   // never block a Windows shutdown
 
         Closed += (_, _) =>
         {
             _tray?.Dispose();
             _playtimeTimer.Stop();
+            _recTimer.Stop();
+            _recorder.Stop(5000);   // finishes a recording that is still running, so the file is not left broken
+            ShutdownMedia();        // ends the instant replay buffer
             _multi.Dispose();
             foreach (var session in _sessions.ToList()) EndSession(session);
             _discord.Dispose();
@@ -195,7 +203,8 @@ public partial class MainWindow : Window
 
         var startLink = Environment.GetCommandLineArgs()
             .Skip(1)
-            .FirstOrDefault(a => a.StartsWith("roblox-player:", StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(a => a.StartsWith("roblox-player:", StringComparison.OrdinalIgnoreCase) ||
+                                 ShareLink.IsShareLink(a));
 
         Loaded += async (_, _) =>
         {
@@ -205,7 +214,7 @@ public partial class MainWindow : Window
                 WindowState = WindowState.Normal;   // so opening it from the tray shows it normally
                 ShowInTaskbar = true;
             }
-            if (startLink != null) HandleLink(startLink);
+            if (startLink != null) HandleAnyLink(startLink);
             _ = RefreshDiscordAsync();   // show the idle status right away
             _ = AutoUpdateLoopAsync();   // checks GitHub for a newer Rostr now and every few hours
             await InitClientAsync();
@@ -227,7 +236,9 @@ public partial class MainWindow : Window
         _hotkeyHwnd = source.Handle;
         if (!RegisterHotKey(source.Handle, HotkeyId, S.OverlayHotkeyMods | 0x4000, S.OverlayHotkeyVk))
             SetStatus(HotkeyText(S.OverlayHotkeyMods, S.OverlayHotkeyVk) +
-                      " is used by another app, so the overlay hotkey is off.", Busy);
+                      " is used by another app, so the stats overlay hotkey is off.", Busy);
+
+        RegisterMediaHotkeys(source.Handle);
     }
 
     private IntPtr _hotkeyHwnd;
@@ -261,7 +272,7 @@ public partial class MainWindow : Window
             S.OverlayHotkeyMods = mods;
             S.OverlayHotkeyVk = vk;
             S.Save();
-            SetStatus("Overlay hotkey is now " + HotkeyLabel + ".", Ok);
+            SetStatus("Stats overlay hotkey is now " + HotkeyLabel + ".", Ok);
         }
         else
         {
@@ -273,7 +284,25 @@ public partial class MainWindow : Window
 
     protected override void OnPreviewKeyDown(KeyEventArgs e)
     {
-        if (_capturingHotkey)
+        if (MediaViewer.Visibility == Visibility.Visible)
+        {
+            if (ViewTitleBox.Visibility == Visibility.Visible)
+            {
+                // Typing a new name: Esc only cancels that, and Space must reach the text box, not the video.
+                if (e.Key == Key.Escape) { CancelRename(); e.Handled = true; return; }
+            }
+            else
+            {
+                if (e.Key == Key.Escape) { CloseViewer(); e.Handled = true; return; }
+                if (e.Key == Key.Space && _viewing is { IsVideo: true }) { TogglePlayback(); e.Handled = true; return; }
+            }
+        }
+        if (_capturingDimKey)
+        {
+            HandleDimCapture(e);
+            return;
+        }
+        if (_capturingHotkey || _capturingMediaKey != null)
         {
             e.Handled = true;
             var key = e.Key == Key.System ? e.SystemKey : e.Key;
@@ -281,6 +310,7 @@ public partial class MainWindow : Window
             if (key == Key.Escape)
             {
                 _capturingHotkey = false;
+                _capturingMediaKey = null;
                 UpdateSettingsUi();
                 return;
             }
@@ -297,8 +327,17 @@ public partial class MainWindow : Window
                 return;
             }
 
-            _capturingHotkey = false;
-            ChangeHotkey(mods, (uint)KeyInterop.VirtualKeyFromKey(key));
+            var vk = (uint)KeyInterop.VirtualKeyFromKey(key);
+            if (_capturingMediaKey is { } which)
+            {
+                _capturingMediaKey = null;
+                ChangeMediaHotkey(which, mods, vk);
+            }
+            else
+            {
+                _capturingHotkey = false;
+                ChangeHotkey(mods, vk);
+            }
             return;
         }
         base.OnPreviewKeyDown(e);
@@ -306,6 +345,7 @@ public partial class MainWindow : Window
 
     private void HotkeyBtn_Click(object sender, RoutedEventArgs e)
     {
+        _capturingMediaKey = null;
         _capturingHotkey = true;
         UpdateSettingsUi();
         HotkeyBtn.Focus();
@@ -351,10 +391,27 @@ public partial class MainWindow : Window
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        if (msg == WM_HOTKEY && wParam.ToInt32() == HotkeyId)
+        if (msg == WM_HOTKEY)
         {
-            if (!_capturingHotkey) ToggleOverlayHidden();
-            handled = true;
+            switch (wParam.ToInt32())
+            {
+                case HotkeyId:
+                    if (!_capturingHotkey) ToggleOverlayHidden();
+                    handled = true;
+                    break;
+                case ShotHotkeyId:
+                    if (!_capturingHotkey && _capturingMediaKey == null) TakeScreenshot(true);
+                    handled = true;
+                    break;
+                case RecHotkeyId:
+                    if (!_capturingHotkey && _capturingMediaKey == null) ToggleRecording(true);
+                    handled = true;
+                    break;
+                case ReplayHotkeyId:
+                    if (!_capturingHotkey && _capturingMediaKey == null) SaveReplay(true);
+                    handled = true;
+                    break;
+            }
         }
         return IntPtr.Zero;
     }
@@ -365,17 +422,29 @@ public partial class MainWindow : Window
         OverlayWindow.Hidden = S.OverlayHidden;
         S.Save();
         UpdateSettingsUi();
-        SetStatus(S.OverlayHidden ? $"Overlay hidden. {HotkeyLabel} shows it again." : "Overlay shown.", Ok);
+        SetStatus(S.OverlayHidden ? $"Stats overlay hidden. {HotkeyLabel} shows it again." : "Stats overlay shown.", Ok);
     }
 
 
     // ---------- Messages from a second launch ----------
 
+    // True for a roblox-player: link that launches Roblox right away, without opening Rostr: a friend or server
+    // join, or any Play link from roblox.com while "Skip choosing a server" is on (Roblox then picks the server).
+    private bool SkipsRostr(string uri)
+    {
+        if (!uri.StartsWith("roblox-player:", StringComparison.OrdinalIgnoreCase)) return false;
+        if (GameLauncher.IsDirectJoinUri(uri)) return true;
+        if (!S.AutoBestServer) return false;
+        try { GameLauncher.Parse(uri); return true; }
+        catch { return false; }
+    }
+
     public void HandleMessage(string msg)
     {
-        if (msg.StartsWith("roblox-player:", StringComparison.OrdinalIgnoreCase))
+        var directJoin = SkipsRostr(msg);
+        if (msg.StartsWith("roblox-player:", StringComparison.OrdinalIgnoreCase) || ShareLink.IsShareLink(msg))
         {
-            HandleLink(msg);
+            HandleAnyLink(msg);
         }
         else if (msg.StartsWith("show:", StringComparison.OrdinalIgnoreCase) &&
                  Version.TryParse(msg[5..], out var newer) && newer > Updater.CurrentVersion &&
@@ -388,7 +457,7 @@ public partial class MainWindow : Window
             Close();
             return;
         }
-        BringToFront();
+        if (!directJoin) BringToFront();
     }
 
     private void UpdateVersionText()
@@ -405,11 +474,18 @@ public partial class MainWindow : Window
 
     private void ShowFromTray() => BringToFront();
 
-    // The tray menu is rebuilt each time it opens, so the names and check marks are always current.
+    // The tray menu is rebuilt each time it opens, so the names, switches and the Roblox status are always current.
+    // Glyphs are Segoe Fluent / MDL2 icons. Toggle rows show a switch and keep the menu open.
     private IEnumerable<TrayEntry> BuildTrayMenu()
     {
-        yield return new TrayEntry($"Rostr  {Updater.CurrentVersion}", Header: true);
-        yield return new TrayEntry(Loc.T("Open Rostr"), ShowFromTray, Bold: true);
+        var running = _sessions.Count > 0;
+        var who = ActiveAccount()?.Label;
+        var sub = Loc.T("Version") + " " + Updater.CurrentVersion;
+        if (!string.IsNullOrEmpty(who)) sub += "  \u00B7  " + who;
+        yield return new TrayEntry("Rostr", Header: true, Hint: sub,
+            Badge: Loc.T(running ? "Roblox running" : "Ready"), BadgeOn: running);
+
+        yield return new TrayEntry(Loc.T("Open Rostr"), ShowFromTray, Bold: true, Glyph: "\uE8A7");
 
         var last = S.Recent.FirstOrDefault();
         if (last != null)
@@ -421,7 +497,7 @@ public partial class MainWindow : Window
             {
                 if (ActiveAccount() == null) ShowFromTray();   // the "pick an account" message needs a visible window
                 _ = QuickRandomAsync(place);
-            });
+            }, Glyph: "\uE768");
 
             var job = !string.IsNullOrEmpty(last.LastJobId) && Regex.IsMatch(last.LastJobId, @"^[0-9a-fA-F\-]{8,64}$")
                 ? last.LastJobId : null;
@@ -430,28 +506,34 @@ public partial class MainWindow : Window
                 {
                     if (ActiveAccount() == null) ShowFromTray();
                     else _ = LaunchAsync(place, job);
-                });
+                }, Glyph: "\uE72C");
         }
 
-        yield return TrayEntry.Sep();
-        yield return new TrayEntry(Loc.T("Show overlay"), ToggleOverlayHidden, Checked: !S.OverlayHidden);
+        yield return new TrayEntry(Loc.T("Quick settings"), Header: true);
+        yield return new TrayEntry(Loc.T("Show stats overlay"), ToggleOverlayHidden,
+            Checked: !S.OverlayHidden, Toggle: true, Glyph: "\uE7B3");
         yield return new TrayEntry(Loc.T("Discord status"), () =>
         {
             S.DiscordEnabled = !S.DiscordEnabled;
             S.Save();
             UpdateSettingsUi();
             _ = RefreshDiscordAsync();
-        }, Checked: S.DiscordEnabled);
+        }, Checked: S.DiscordEnabled, Toggle: true, Glyph: "\uE8BD");
         yield return new TrayEntry(Loc.T("Skip choosing a server"), () =>
         {
             S.AutoBestServer = !S.AutoBestServer;
             S.Save();
             UpdateSettingsUi();
-        }, Checked: S.AutoBestServer);
+        }, Checked: S.AutoBestServer, Toggle: true, Glyph: "\uE945");
+
+        yield return new TrayEntry(Loc.T("Capture"), Header: true);
+        yield return new TrayEntry(Loc.T("Take screenshot"), () => TakeScreenshot(true), Glyph: "\uE722");
+        yield return new TrayEntry(Loc.T(_recorder.IsRecording ? "Stop recording" : "Start recording"),
+            () => ToggleRecording(true), Glyph: _recorder.IsRecording ? "\uE71A" : "\uE714");
 
         yield return TrayEntry.Sep();
-        yield return new TrayEntry(Loc.T("Settings"), () => { ShowFromTray(); ShowPage(2); });
-        yield return new TrayEntry(Loc.T("Exit"), () => { _reallyExit = true; Close(); });
+        yield return new TrayEntry(Loc.T("Settings"), () => { ShowFromTray(); ShowPage(2); }, Glyph: "\uE713");
+        yield return new TrayEntry(Loc.T("Exit"), () => { _reallyExit = true; Close(); }, Danger: true, Glyph: "\uE7E8");
     }
 
     // The X button hides Rostr in the tray (when the setting is on). Exit in the tray menu really closes it.
@@ -464,7 +546,12 @@ public partial class MainWindow : Window
             if (!_trayHintShown)
             {
                 _trayHintShown = true;
-                _tray?.ShowBalloon("Rostr is still running", "Click the tray icon to open it. Right-click it to exit.");
+                // A Rostr-styled card in the corner of the screen instead of the default Windows balloon.
+                _tray?.ShowNotice("Rostr is still running",
+                    "Rostr keeps running in the tray. Click its icon to open it.",
+                    null,
+                    9,
+                    ShowFromTray);
             }
             return;
         }
@@ -502,17 +589,24 @@ public partial class MainWindow : Window
         FriendsPage.Visibility = page == 3 ? Visibility.Visible : Visibility.Collapsed;
         ReadmePage.Visibility = page == 4 ? Visibility.Visible : Visibility.Collapsed;
         ChangelogPage.Visibility = page == 5 ? Visibility.Visible : Visibility.Collapsed;
+        MediaPage.Visibility = page == 6 ? Visibility.Visible : Visibility.Collapsed;
+        TrendingPage.Visibility = page == 7 ? Visibility.Visible : Visibility.Collapsed;
+        if (page != 6) CloseViewer();   // stops a playing video when you leave the page
         NavPlayBtn.Background = page == 0 ? NavActive : Brushes.Transparent;
         NavLibraryBtn.Background = page == 1 ? NavActive : Brushes.Transparent;
         NavSettingsBtn.Background = page == 2 ? NavActive : Brushes.Transparent;
         NavFriendsBtn.Background = page == 3 ? NavActive : Brushes.Transparent;
         NavReadmeBtn.Background = page == 4 ? NavActive : Brushes.Transparent;
+        NavMediaBtn.Background = page == 6 ? NavActive : Brushes.Transparent;
+        NavTrendingBtn.Background = page == 7 ? NavActive : Brushes.Transparent;
 
         if (page == 1) RefreshLibrary();
         if (page == 2) ShowSettingsTab(_settingsTab);
         if (page == 3) _ = RefreshFriendsAsync(false);
         if (page == 4) _ = LoadReadmeAsync(false);
         if (page == 5) _ = LoadChangelogAsync(false);
+        if (page == 6) RefreshMedia();
+        if (page == 7) TrendingPage.Activate();
     }
 
 
@@ -535,6 +629,8 @@ public partial class MainWindow : Window
     }
 
     private void NavFriends_Click(object sender, RoutedEventArgs e) => ShowPage(3);
+    private void NavMedia_Click(object sender, RoutedEventArgs e) => ShowPage(6);
+    private void NavTrending_Click(object sender, RoutedEventArgs e) => ShowPage(7);
 
     private void NavPlay_Click(object sender, RoutedEventArgs e) => ShowPage(0);
     private void NavLibrary_Click(object sender, RoutedEventArgs e) => ShowPage(1);

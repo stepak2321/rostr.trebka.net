@@ -10,13 +10,11 @@ You need Windows and the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotn
 dotnet run --project RobloxLauncher -c Release
 ```
 
-To make a single-file, self-contained `Rostr.exe` (replace `1.4.0` with your version):
+Helper scripts in the repository root:
 
-```bat
-dotnet publish RobloxLauncher/RobloxLauncher.csproj -c Release -r win-x64 --self-contained true -p:Version=1.4.0 -p:AssemblyVersion=1.4.0.0 -p:FileVersion=1.4.0.0 -p:InformationalVersion=1.4.0 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=None -p:DebugSymbols=false -o dist
-```
-
-The result is `dist\Rostr.exe`. Some in-app messages say "Run build.bat". In this copy of the project, publish with the command above instead.
+- `build.bat` asks for a version (for example `1.4.0`) and publishes a single-file, self-contained `dist\Rostr.exe`.
+- `Start.bat` starts `dist\Rostr.exe`, or runs from source with `Start.bat dev`.
+- `Clean.bat` removes `bin\`, `obj\` and `.vs\`.
 
 ## Project layout
 
@@ -27,6 +25,7 @@ RobloxLauncher/
   Assets/          Logo and icon
   MainWindow.*.cs  UI logic, split by page (Play, Friends, Library, Settings, ...)
   *.xaml           Windows and styles
+build.bat  Start.bat  Clean.bat
 ```
 
 ## Guidelines
@@ -38,7 +37,7 @@ RobloxLauncher/
 
 ## Publishing a release (maintainers)
 
-1. Publish `dist\Rostr.exe` with the command above, using the new version, for example `1.4.0`.
+1. Run `build.bat` and enter the version, for example `1.4.0`.
 2. Create a GitHub release with the tag `v1.4.0` and attach `dist\Rostr.exe` (optionally also `Rostr.exe.sha256`).
 3. Installed copies find the new release and offer the update.
 

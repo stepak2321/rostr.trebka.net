@@ -8,6 +8,10 @@ public static class ProtocolHandler
     private const string KeyPath = @"Software\Classes\roblox-player";
     private const string CommandPath = KeyPath + @"\shell\open\command";
 
+    // rostr:// links (shareable server links). Ours alone, so nothing needs backing up or restoring.
+    private const string ShareKeyPath = @"Software\Classes\rostr";
+    private const string ShareCommandPath = ShareKeyPath + @"\shell\open\command";
+
     private static string BackupFile => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Rostr", "original-handler.txt");
@@ -59,6 +63,7 @@ public static class ProtocolHandler
     /// </summary>
     public static void EnsureRegistered()
     {
+        EnsureShareRegistered();   // rostr:// links are not a takeover of anything, so AutoRegister does not gate them
         try
         {
             if (!RobloxLauncher.Settings.AppSettings.Current.AutoRegister) return;
@@ -70,6 +75,38 @@ public static class ProtocolHandler
         {
             Log.Warn("Automatic register failed: " + ex.Message);
         }
+    }
+
+    /// <summary>Points rostr:// links at this exe. Only writes when the registry is out of date.</summary>
+    public static void EnsureShareRegistered()
+    {
+        try
+        {
+            var want = BuildCommand();
+            if (want == null) return;
+            using (var cur = Registry.CurrentUser.OpenSubKey(ShareCommandPath))
+                if (string.Equals(cur?.GetValue("") as string, want, StringComparison.OrdinalIgnoreCase)) return;
+
+            using (var key = Registry.CurrentUser.CreateSubKey(ShareKeyPath))
+            {
+                key.SetValue("", "URL: Rostr Server Link");
+                key.SetValue("URL Protocol", "");
+            }
+            using var cmd = Registry.CurrentUser.CreateSubKey(ShareCommandPath);
+            cmd.SetValue("", want);
+            Log.Info("Registered rostr handler: " + want);
+        }
+        catch (Exception ex)
+        {
+            Log.Warn("rostr link register failed: " + ex.Message);
+        }
+    }
+
+    /// <summary>Removes the rostr:// handler (used when Rostr is uninstalled).</summary>
+    public static void UnregisterShare()
+    {
+        try { Registry.CurrentUser.DeleteSubKeyTree(ShareKeyPath, throwOnMissingSubKey: false); }
+        catch (Exception ex) { Log.Warn("rostr link unregister failed: " + ex.Message); }
     }
 
     public static void Unregister()

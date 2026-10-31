@@ -44,12 +44,24 @@ public sealed class MultiInstance : IDisposable
 
     public void Dispose() => Stop();
 
+    // Windows session this launcher runs in. Every RDP login, fast-user-switch login and the local
+    // console have their own session, so this is what separates "my" Roblox clients from the rest of the PC.
+    private static readonly int MySessionId = Process.GetCurrentProcess().SessionId;
+
+    /// <summary>True when the process runs in the same Windows session (same login) as this launcher.</summary>
+    public static bool InThisSession(Process p)
+    {
+        try { return p.SessionId == MySessionId; }
+        catch { return false; }   // gone, or no access: not ours
+    }
+
+    /// <summary>PIDs of the Roblox clients in THIS Windows session only (not other RDP or user sessions).</summary>
     public static List<int> RunningPids()
     {
         var list = new List<int>();
         foreach (var p in Process.GetProcessesByName("RobloxPlayerBeta"))
         {
-            list.Add(p.Id);
+            if (InThisSession(p)) list.Add(p.Id);
             p.Dispose();
         }
         return list;
@@ -65,7 +77,10 @@ public sealed class MultiInstance : IDisposable
         {
             foreach (var p in Process.GetProcessesByName(name))
             {
-                try { p.Kill(true); } catch { }
+                if (InThisSession(p))
+                {
+                    try { p.Kill(true); } catch { }
+                }
                 p.Dispose();
             }
         }

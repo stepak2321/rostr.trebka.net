@@ -1,0 +1,38 @@
+name: Collect player counts
+
+on:
+  schedule:
+    - cron: "7 * * * *"          # every hour at :07 (GitHub may run it a few minutes late)
+  workflow_dispatch:             # "Run workflow" button on the Actions tab
+  push:
+    paths:
+      - "trending/places.json"   # run right away after you edit the list
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trending
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Collect player counts
+        run: python3 trending/collect.py
+
+      - name: Save to the repository
+        run: |
+          git config user.name "rostr-bot"
+          git config user.email "rostr-bot@users.noreply.github.com"
+          git add trending/data trending/index.json
+          if git diff --cached --quiet; then
+            echo "Nothing changed"
+            exit 0
+          fi
+          git commit -m "Player counts $(date -u '+%Y-%m-%d %H:%M') UTC"
+          git pull --rebase
+          git push

@@ -230,20 +230,122 @@ public static class RobloxApi
         return map;
     }
 
-    /// <summary>One page (up to 100) of public servers. Pass the previous page's NextCursor for the next one.</summary>
+    // ---------- Server list: cache, de-duplication and rate-limit retry ----------
+
+    private static readonly TimeSpan ServerCacheTtl = TimeSpan.FromSeconds(10);   // fresh: served without a request
+    private static readonly TimeSpan ServerStaleTtl = TimeSpan.FromMinutes(2);    // fallback if Roblox keeps refusing
+    private const int MaxRateLimitRetries = 3;
+    private static readonly TimeSpan MaxRetryWait = TimeSpan.FromSeconds(20);
+
+    private sealed record CachedPage(ServerPage Page, DateTime At);
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, CachedPage> ServerCache = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Task<ServerPage>> ServerInFlight = new();
+
+    /// <summary>
+    /// One page (up to 100) of public servers. Pass the previous page's NextCursor for the next one.
+    /// Answers from a 10 second cache, shares one request between identical simultaneous calls, and retries
+    /// HTTP 429 automatically (honouring Retry-After) before giving up.
+    /// </summary>
     public static async Task<ServerPage> GetServersAsync(long placeId, bool ascending, string? cursor = null)
+    {
+        var key = $"{placeId}|{(ascending ? "A" : "D")}|{cursor}";
+
+        if (ServerCache.TryGetValue(key, out var hit) && DateTime.UtcNow - hit.At < ServerCacheTtl)
+            return CopyPage(hit.Page);
+
+        var task = ServerInFlight.GetOrAdd(key, _ => FetchServersAsync(placeId, ascending, cursor, key));
+        try
+        {
+            return CopyPage(await task);
+        }
+        finally
+        {
+            ServerInFlight.TryRemove(new KeyValuePair<string, Task<ServerPage>>(key, task));
+        }
+    }
+
+    private static ServerPage CopyPage(ServerPage p) => new(new List<ServerInfo>(p.Servers), p.NextCursor);
+
+    private static async Task<ServerPage> FetchServersAsync(long placeId, bool ascending, string? cursor, string key)
+    {
+        try
+        {
+            var page = await DownloadServersAsync(placeId, ascending, cursor);
+            ServerCache[key] = new CachedPage(page, DateTime.UtcNow);
+            TrimServerCache();
+            return page;
+        }
+        catch (RateLimitException) when (ServerCache.TryGetValue(key, out var old) &&
+                                         DateTime.UtcNow - old.At < ServerStaleTtl)
+        {
+            // Still limited after the retries: an older list beats an error.
+            Log.Warn("Server list rate limited; showing a cached list instead.");
+            return old.Page;
+        }
+    }
+
+    private static void TrimServerCache()
+    {
+        if (ServerCache.Count < 64) return;
+        var cutoff = DateTime.UtcNow - ServerStaleTtl;
+        foreach (var kv in ServerCache)
+            if (kv.Value.At < cutoff) ServerCache.TryRemove(kv.Key, out _);
+    }
+
+    private sealed class RateLimitException : InvalidOperationException
+    {
+        public RateLimitException(string message) : base(message) { }
+    }
+
+    private static async Task<ServerPage> DownloadServersAsync(long placeId, bool ascending, string? cursor)
     {
         var order = ascending ? "Asc" : "Desc";
         var url = $"https://games.roblox.com/v1/games/{placeId}/servers/Public" +
                   $"?sortOrder={order}&excludeFullGames=true&limit=100";
         if (!string.IsNullOrEmpty(cursor)) url += "&cursor=" + Uri.EscapeDataString(cursor);
 
-        using var res = await Http.GetAsync(url);
-        if (res.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-            throw new InvalidOperationException("Roblox says too many requests. Wait a few seconds and try again.");
-        res.EnsureSuccessStatusCode();
+        for (var attempt = 0; ; attempt++)
+        {
+            using var res = await Http.GetAsync(url);
 
-        using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
+            if (res.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            {
+                var wait = RetryDelay(res, attempt);
+                if (attempt >= MaxRateLimitRetries || wait > MaxRetryWait)
+                {
+                    var secs = Math.Max(1, (int)Math.Ceiling(wait.TotalSeconds));
+                    throw new RateLimitException(
+                        $"Roblox says too many requests. Wait about {secs} seconds and try again.");
+                }
+                Log.Warn($"Server list rate limited (429); retry {attempt + 1}/{MaxRateLimitRetries} in {wait.TotalSeconds:0.0}s.");
+                await Task.Delay(wait);
+                continue;
+            }
+
+            res.EnsureSuccessStatusCode();
+            return ParseServers(await res.Content.ReadAsStringAsync());
+        }
+    }
+
+    /// <summary>Retry-After (seconds or a date) when Roblox sends it, otherwise 1s, 2s, 4s with a little jitter.</summary>
+    private static TimeSpan RetryDelay(HttpResponseMessage res, int attempt)
+    {
+        var ra = res.Headers.RetryAfter;
+        if (ra?.Delta is { } delta)
+            return Clamp(delta + TimeSpan.FromMilliseconds(Random.Shared.Next(100, 400)));
+        if (ra?.Date is { } date)
+            return Clamp(date - DateTimeOffset.UtcNow + TimeSpan.FromMilliseconds(Random.Shared.Next(100, 400)));
+
+        var backoff = TimeSpan.FromSeconds(Math.Pow(2, attempt));
+        return backoff + TimeSpan.FromMilliseconds(Random.Shared.Next(0, 400));
+
+        static TimeSpan Clamp(TimeSpan t) => t < TimeSpan.FromMilliseconds(500) ? TimeSpan.FromMilliseconds(500) : t;
+    }
+
+    private static ServerPage ParseServers(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
         var list = new List<ServerInfo>();
         foreach (var s in doc.RootElement.GetProperty("data").EnumerateArray())
         {

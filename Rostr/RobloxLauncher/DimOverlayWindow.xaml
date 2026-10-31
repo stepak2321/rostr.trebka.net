@@ -1,0 +1,17 @@
+<Window x:Class="RobloxLauncher.DimOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        Topmost="True" ShowInTaskbar="False" ShowActivated="False" ResizeMode="NoResize"
+        Focusable="False" IsHitTestVisible="False" Width="400" Height="300"
+        FontFamily="Segoe UI" Title="Rostr dim">
+    <!-- The tint is set in code: lighter when the blur behind the window works, darker when it does not. -->
+    <Grid x:Name="Root" Background="#5C000000">
+        <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,32,0,0">
+            <TextBlock x:Name="ClockText" Text="00:00" FontSize="48" FontWeight="SemiBold"
+                       Foreground="White" TextAlignment="Left"/>
+            <TextBlock x:Name="PlayText" Text="Playing for 0:00:00" FontSize="16"
+                       Foreground="#C8CEDC" TextAlignment="Left" Margin="2,2,0,0"/>
+        </StackPanel>
+    </Grid>
+</Window>

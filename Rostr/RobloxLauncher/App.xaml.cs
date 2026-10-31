@@ -41,7 +41,7 @@ public partial class App : Application
         if (!isFirst)
         {
             var link = e.Args.FirstOrDefault(a =>
-                a.StartsWith("roblox-player:", StringComparison.OrdinalIgnoreCase));
+                a.StartsWith("roblox-player:", StringComparison.OrdinalIgnoreCase) || ShareLink.IsShareLink(a));
             SendToRunningInstance(link ?? "show:" + Updater.CurrentVersion);
 
             // This exe is newer than the Rostr that ran last (for example a fresh download while the old
@@ -60,6 +60,9 @@ public partial class App : Application
                 return;
             }
         }
+
+        // Only the copy that keeps running gets here: start with an empty log.
+        Log.Reset();
 
         // Before anything touches the data folder: bring over data saved under the old folder name.
         DataMigration.Run();

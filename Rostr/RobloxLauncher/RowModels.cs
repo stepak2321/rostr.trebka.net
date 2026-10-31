@@ -84,6 +84,9 @@ public class FriendRow : System.ComponentModel.INotifyPropertyChanged
 
     public long UserId { get; init; }
     public string Title { get; init; } = "";
+    public string DisplayName { get; init; } = "";
+    public string Handle { get; init; } = "";
+    public Visibility JoinVisibility => CanJoin ? Visibility.Visible : Visibility.Collapsed;
     public string Status { get; init; } = "";
     public Brush StatusBrush { get; init; } = Brushes.Gray;
     public bool CanJoin { get; init; }

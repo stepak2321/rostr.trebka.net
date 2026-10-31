@@ -1,0 +1,30 @@
+# Build output
+bin/
+obj/
+dist/
+publish/
+*.exe
+*.sha256
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+
+# Local app data that must never be committed
+accounts.json
+settings.json
+fastflags.json
+original-handler.txt
+readme-cache.html
+*.log
+*.log.old
+
+# OS junk
+Thumbs.db
+Desktop.ini
+.DS_Store

@@ -19,12 +19,85 @@ public partial class MainWindow : Window
 {
     // ---------- Game link ----------
 
+    private void HandleAnyLink(string uri)
+    {
+        if (ShareLink.IsShareLink(uri)) HandleShareLink(uri);
+        else HandleLink(uri);
+    }
+
+    // rostr://join?place=...&job=...: a friend shared a server. Asks first, because any web page can
+    // open a rostr:// link and nothing should start Roblox without the person agreeing.
+    private async void HandleShareLink(string uri)
+    {
+        var share = ShareLink.TryParse(uri);
+        if (share == null)
+        {
+            BringToFront();
+            SetStatus("That is not a valid Rostr server link.", Bad);
+            return;
+        }
+
+        try
+        {
+            BringToFront();
+            OpenPlace(share.PlaceId);
+
+            if (ActiveAccount() == null)
+            {
+                SetStatus("Pick an account in the sidebar, then open the server link again.", Bad);
+                return;
+            }
+
+            var (name, _) = await KnownGameAsync(share.PlaceId);
+            var answer = MessageBox.Show(this,
+                $"Join this server in {name}?\n\nServer: {share.JobId}",
+                "Rostr", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (answer != MessageBoxResult.Yes) return;
+
+            if (!_clientReady)
+            {
+                SetStatus("Preparing Roblox, then joining the shared server...", Busy);
+                for (var i = 0; i < 240 && !_clientReady; i++) await Task.Delay(500);
+            }
+            await LaunchAsync(share.PlaceId, share.JobId);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Server link failed", ex);
+            SetStatus("Server link: " + ex.Message, Bad);
+        }
+    }
+
+    private void CopyLinkBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button b || b.Tag is not string id || _placeId == 0) return;
+        try
+        {
+            Clipboard.SetText(ShareLink.Build(_placeId, id));
+            SetStatus("Server link copied. A friend with Rostr can open it to join this server.", Ok);
+        }
+        catch (Exception ex)
+        {
+            SetStatus("Could not copy the link: " + ex.Message, Bad);
+        }
+    }
+
     private void HandleLink(string uri)
     {
+        _directWebLaunchPending = false;
         try
         {
             _link = GameLauncher.Parse(uri);
             _linkUsed = false;
+            // Skip choosing a server: a Play link from roblox.com launches right away, Rostr stays closed.
+            _directWebLaunchPending = GameLauncher.IsDirectJoin(_link) || S.AutoBestServer;
+            if (_directWebLaunchPending)
+            {
+                _autoLaunchPending = false;
+                TryAutoLaunch();
+                return;
+            }
+
             OpenGame(_link.PlaceId);
             TryAutoLaunch();
         }
@@ -306,21 +379,40 @@ public partial class MainWindow : Window
         var can = _placeId != 0 && _clientReady && canLaunch;
 
         PlayBtn.IsEnabled = can;
-        RandomBtn.IsEnabled = can;
+        HopBtn.IsEnabled = can;
         RejoinLastBtn.IsEnabled = can && !string.IsNullOrEmpty(LastJobForCurrent());
         PlayBtn.Content = Loc.T(!_clientReady ? "Preparing..." : (acc == null && _linkUsed ? "Launched" : "Play"));
     }
 
     private void PlayBtn_Click(object sender, RoutedEventArgs e)
     {
-        // "Skip choosing a server": Play joins a random server among the ones with the best ping.
-        // A server picked on roblox.com (a link that was not used yet) is never overridden.
-        if (S.AutoBestServer && _placeId != 0 && ActiveAccount() != null && (_link == null || _linkUsed))
+        // Play joins a random server from the list. A server picked on roblox.com (a link that was not
+        // used yet) is never overridden, and without an account Roblox chooses the server itself.
+        if (_placeId != 0 && ActiveAccount() != null && (_link == null || _linkUsed))
         {
-            _ = QuickRandomAsync(_placeId);
+            _ = JoinRandomAsync();
             return;
         }
         LaunchGame(null);
+    }
+
+    // Joins straight away. If the list is not loaded, it asks Roblox directly.
+    private async Task JoinRandomAsync()
+    {
+        if (_shown.Count > 0)
+        {
+            var pick = S.AutoBestServer ? PickBestPing(_shown) : _shown[Random.Shared.Next(_shown.Count)];
+            LaunchGame(pick.Id);
+            return;
+        }
+
+        if (_servers.Count > 0)
+        {
+            SetStatus("No servers match your filters.", Bad);
+            return;
+        }
+
+        if (_placeId != 0) await QuickRandomAsync(_placeId);
     }
 
     // Takes the servers with the lowest ping (a ping of 0 means Roblox has no value) and picks one at
@@ -340,22 +432,114 @@ public partial class MainWindow : Window
         if (sender is Button b && b.Tag is string id) LaunchGame(id);
     }
 
-    // Random server: joins straight away. If the list is not loaded, it asks Roblox directly.
-    private async void RandomBtn_Click(object sender, RoutedEventArgs e)
+    // ---------- Server hop ----------
+
+    private bool _hopBusy;
+
+    private async void HopBtn_Click(object sender, RoutedEventArgs e)
     {
-        if (_shown.Count > 0)
+        if (_placeId != 0) await ServerHopAsync(_placeId, null);
+    }
+
+    private void MarkVisited(long placeId, string? job)
+    {
+        if (placeId <= 0 || string.IsNullOrEmpty(job)) return;
+        if (!S.VisitedServers.TryGetValue(placeId, out var list))
+            S.VisitedServers[placeId] = list = new List<string>();
+        if (list.Contains(job)) return;
+
+        list.Add(job);
+        if (list.Count > 500) list.RemoveRange(0, list.Count - 500);
+        if (S.VisitedServers.Count > 100) S.VisitedServers.Remove(S.VisitedServers.Keys.First());
+        S.Save();
+    }
+
+    // Joins a random open server you have not been in yet. "from" is the client you are hopping away from.
+    private async Task ServerHopAsync(long placeId, Session? from)
+    {
+        if (_hopBusy || _launching) return;
+        if (ActiveAccount() == null && (_link == null || _linkUsed || _link.PlaceId != placeId))
         {
-            LaunchGame(_shown[Random.Shared.Next(_shown.Count)].Id);
+            SetStatus("Pick an account in the sidebar first.", Bad);
             return;
         }
 
-        if (_servers.Count > 0)
+        _hopBusy = true;
+        try
         {
-            SetStatus("No servers match your filters.", Bad);
-            return;
-        }
+            SetStatus("Finding a server you have not been in...", Busy);
 
-        if (_placeId != 0) await QuickRandomAsync(_placeId);
+            var visited = new HashSet<string>(
+                S.VisitedServers.TryGetValue(placeId, out var seen) ? seen : new List<string>());
+            foreach (var running in _sessions)
+                if (running.PlaceId == placeId && !string.IsNullOrEmpty(running.Job)) visited.Add(running.Job);
+            if (!string.IsNullOrEmpty(from?.Job)) visited.Add(from!.Job!);
+
+            ServerInfo? pick = null;
+            string? cursor = null;
+            for (var page = 0; page < 6 && pick == null; page++)
+            {
+                var res = await RobloxApi.GetServersAsync(placeId, false, cursor);
+                var fresh = res.Servers
+                    .Where(x => !visited.Contains(x.Id) && (x.MaxPlayers <= 0 || x.Playing < x.MaxPlayers))
+                    .ToList();
+                if (fresh.Count > 0)
+                    pick = S.AutoBestServer ? PickBestPing(fresh) : fresh[Random.Shared.Next(fresh.Count)];
+                if (res.NextCursor == null) break;
+                cursor = res.NextCursor;
+            }
+
+            if (pick == null)
+            {
+                SetStatus("You have already been in every open server I could find. Try again later.", Bad);
+                return;
+            }
+
+            MarkVisited(placeId, pick.Id);
+
+            var ok = placeId == _placeId
+                ? await LaunchCoreAsync(_placeId, _gameName, _gameIcon, pick.Id, _link)
+                : await LaunchAsync(placeId, pick.Id);
+
+            if (ok && _sessions.Count > 0) _sessions[^1].HopPrompt = true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Server hop failed", ex);
+            SetStatus("Could not find a server: " + ex.Message, Bad);
+        }
+        finally
+        {
+            _hopBusy = false;
+        }
+    }
+
+    // Closes one client (and its session) and waits until it is really gone.
+    private async Task CloseClientAsync(Session o)
+    {
+        var pid = o.Pid;
+        if (pid > 0)
+        {
+            try
+            {
+                using var p = Process.GetProcessById(pid);
+                p.Kill(true);
+                await Task.Run(() => p.WaitForExit(5000));
+            }
+            catch { }   // already closed
+        }
+        if (_sessions.Contains(o)) EndSession(o);
+    }
+
+    // After a hop lands in a server: stay here, or hop to another new one.
+    private async Task AskStayOrHopAsync(Session s, long placeId)
+    {
+        await Task.Delay(8000);   // let the game start loading first
+        if (!_sessions.Contains(s)) return;
+
+        var dialog = new HopPromptWindow(this);
+        dialog.ShowDialog();
+        if (dialog.HopAgain && _sessions.Contains(s)) await ServerHopAsync(placeId, s);
     }
 
     private void RejoinLastBtn_Click(object sender, RoutedEventArgs e)
@@ -550,6 +734,8 @@ public partial class MainWindow : Window
     private static string? ExtractJob(string placeUrl)
     {
         var m = Regex.Match(placeUrl, @"[?&]gameId=([0-9a-fA-F\-]{36})");
+        if (!m.Success)
+            m = Regex.Match(placeUrl, @"[?&]gameInstanceId=([0-9a-fA-F\-]{36})", RegexOptions.IgnoreCase);
         return m.Success ? m.Groups[1].Value : null;
     }
 
@@ -579,6 +765,21 @@ public partial class MainWindow : Window
             return;
         }
         await LaunchCoreAsync(_placeId, _gameName, _gameIcon, jobId, _link);
+    }
+
+    private async Task LaunchDirectWebLinkAsync(LaunchLink link)
+    {
+        var known = link.PlaceId > 0
+            ? (GameEntry?)S.Recent.FirstOrDefault(r => r.PlaceId == link.PlaceId)
+              ?? S.Favorites.FirstOrDefault(f => f.PlaceId == link.PlaceId)
+            : null;
+        var name = known?.Name ?? (link.PlaceId > 0 ? $"Game {link.PlaceId}" : "Friend's game");
+        var icon = known?.IconUrl;
+        var ok = await LaunchCoreAsync(link.PlaceId, name, icon, null, link,
+            ticket => link with { Ticket = ticket });
+
+        // Rostr stayed hidden for this launch. If it failed, open the window so the reason is visible.
+        if (!ok && !_launching && !IsVisible) BringToFront();
     }
 
     // Launch any game by place id (library, place box) with the active account.
@@ -624,6 +825,23 @@ public partial class MainWindow : Window
         _launching = true;
         try
         {
+            // Multi Roblox: every client is tagged with the account that started it. Launching again with
+            // the same account replaces that account's old client, so Play, Rejoin and Server hop never
+            // pile up clients. Clients of other accounts are left alone.
+            if (S.MultiRoblox && acc != null)
+            {
+                var old = _sessions.Where(x => x.AccountName == acc.Name).ToList();
+                if (old.Count > 0)
+                {
+                    SetStatus("Closing the old client of this account...", Busy);
+                    foreach (var o in old) await CloseClientAsync(o);
+                }
+
+                // Also close every client tagged with this account that the launcher no longer tracks
+                // (re-spawned PID, leftover from before a restart). This is what stops the pile-up.
+                await ClientTags.KillAccountAsync(acc.Name, TimeSpan.FromSeconds(8));
+            }
+
             // A second client only starts if the first one's singleton event was closed.
             if (MultiInstance.RunningPids().Count > 0)
             {
@@ -670,7 +888,13 @@ public partial class MainWindow : Window
             FastFlagManager.Shared.ApplyTo(_versionDir);
 
             var launchedAt = DateTime.UtcNow;
+            var before = MultiInstance.RunningPids();
             var proc = GameLauncher.Launch(link, _versionDir, jobId);
+            if (acc != null)
+            {
+                if (proc != null) ClientTags.Register(proc.Id, acc.Name);
+                _ = ClientTags.TagNewAsync(acc.Name, before, launchedAt);
+            }
             if (acc == null) _linkUsed = true;
 
             var job = jobId ?? ExtractJob(link.PlaceUrl);

@@ -10,6 +10,7 @@ public class LogWatcher : IDisposable
     public event Action<string, long, string>? GameJoined;     // job id, place id, ip
     public event Action<string, string?>? ServerAddress;       // relay ip, real server ip (when public)
     public event Action? GameClosed;
+    public event Action? GameLeft;                             // left the server but the client is still open (back on the Roblox home screen)
     public event Action<int>? PidAdopted;                      // the client we really follow, when it differs from the one we started
 
     private static readonly Regex JoinRx = new(
@@ -18,6 +19,11 @@ public class LogWatcher : IDisposable
         @"UDMUX Address = ([0-9\.]+), Port = \d+(?:\s*\|\s*RCC Server Address = ([0-9\.]+))?", RegexOptions.Compiled);
     private static readonly Regex ConnectRx = new(
         @"Connecting to UDMUX server ([0-9\.]+):\d+(?:, and RCC server ([0-9\.]+):\d+)?", RegexOptions.Compiled);
+
+    private const string LeaveMark = "leaveUGCGameInternal";
+    private const string DisconnectMark = "Time to disconnect replication data";
+    private bool _inGame;
+    private DateTime _joinedAtUtc;
 
     // Log files already followed by another watcher.
     private static readonly HashSet<string> Claimed = new(StringComparer.OrdinalIgnoreCase);
@@ -67,6 +73,7 @@ public class LogWatcher : IDisposable
         {
             try
             {
+                if (!MultiInstance.InThisSession(p)) continue;
                 if (p.StartTime.ToUniversalTime() < launchedUtc.AddSeconds(-2)) continue;
                 lock (ClaimedPids)
                 {
@@ -193,11 +200,25 @@ public class LogWatcher : IDisposable
                  (b[0] == 172 && b[1] >= 16 && b[1] <= 31) || (b[0] == 169 && b[1] == 254));
     }
 
+    private void RaiseLeft(bool needsDelay)
+    {
+        if (!_inGame) return;
+        // A teleport can print a disconnect line right next to the new join. Ignore it for the first seconds.
+        if (needsDelay && (DateTime.UtcNow - _joinedAtUtc).TotalSeconds < 5) return;
+        _inGame = false;
+        GameLeft?.Invoke();
+    }
+
     private void Parse(string line)
     {
+        if (line.Contains(LeaveMark, StringComparison.Ordinal)) { RaiseLeft(false); return; }
+        if (line.Contains(DisconnectMark, StringComparison.Ordinal)) { RaiseLeft(true); return; }
+
         var m = JoinRx.Match(line);
         if (m.Success)
         {
+            _inGame = true;
+            _joinedAtUtc = DateTime.UtcNow;
             GameJoined?.Invoke(m.Groups[1].Value, long.Parse(m.Groups[2].Value), m.Groups[3].Value);
             return;
         }

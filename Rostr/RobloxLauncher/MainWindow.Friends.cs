@@ -19,11 +19,19 @@ public partial class MainWindow : Window
 {
     // ---------- Friends ----------
 
+    private string _friendQuery = "";
+
     private static string FriendTitle(FriendInfo f)
     {
         if (string.IsNullOrEmpty(f.Name)) return string.IsNullOrEmpty(f.DisplayName) ? $"User {f.Id}" : f.DisplayName;
         return string.IsNullOrEmpty(f.DisplayName) || f.DisplayName == f.Name ? f.Name : $"{f.DisplayName} (@{f.Name})";
     }
+
+    private static string FriendName(FriendInfo f) =>
+        !string.IsNullOrEmpty(f.DisplayName) ? f.DisplayName : !string.IsNullOrEmpty(f.Name) ? f.Name : $"User {f.Id}";
+
+    private static string FriendHandle(FriendInfo f) =>
+        !string.IsNullOrEmpty(f.Name) && f.Name != FriendName(f) ? "@" + f.Name : "";
 
     private static FriendRow ToFriendRow(FriendInfo f, FriendPresence? p)
     {
@@ -33,24 +41,24 @@ public partial class MainWindow : Window
         {
             2 => new FriendRow
             {
-                UserId = f.Id, Title = FriendTitle(f), Order = 0, CanJoin = true,
-                Status = string.IsNullOrWhiteSpace(loc) ? "In a game" : "Playing " + loc,
+                UserId = f.Id, Title = FriendTitle(f), DisplayName = FriendName(f), Handle = FriendHandle(f), Order = 0, CanJoin = true,
+                Status = Loc.T(string.IsNullOrWhiteSpace(loc) ? "In a game" : "Playing " + loc),
                 StatusBrush = Ok, PlaceId = p?.PlaceId ?? 0, Location = loc
             },
             1 => new FriendRow
             {
-                UserId = f.Id, Title = FriendTitle(f), Order = 1, CanJoin = false,
-                Status = "Online", StatusBrush = Accent
+                UserId = f.Id, Title = FriendTitle(f), DisplayName = FriendName(f), Handle = FriendHandle(f), Order = 1, CanJoin = false,
+                Status = Loc.T("Online"), StatusBrush = Accent
             },
             3 => new FriendRow
             {
-                UserId = f.Id, Title = FriendTitle(f), Order = 2, CanJoin = false,
-                Status = "In Roblox Studio", StatusBrush = Busy
+                UserId = f.Id, Title = FriendTitle(f), DisplayName = FriendName(f), Handle = FriendHandle(f), Order = 2, CanJoin = false,
+                Status = Loc.T("In Roblox Studio"), StatusBrush = Busy
             },
             _ => new FriendRow
             {
-                UserId = f.Id, Title = FriendTitle(f), Order = 3, CanJoin = false,
-                Status = "Offline", StatusBrush = Brushes.Gray
+                UserId = f.Id, Title = FriendTitle(f), DisplayName = FriendName(f), Handle = FriendHandle(f), Order = 3, CanJoin = false,
+                Status = Loc.T("Offline"), StatusBrush = Brushes.Gray
             }
         };
     }
@@ -60,8 +68,12 @@ public partial class MainWindow : Window
         var offline = _friendRows.Count(r => r.Order == 3);
         var online = _friendRows.Count - offline;
 
+        // While searching, every friend can be found, offline ones too.
+        var q = _friendQuery;
         var shown = _friendRows
-            .Where(r => _showOfflineFriends || r.Order != 3)
+            .Where(r => q.Length > 0
+                ? r.Title.Contains(q, StringComparison.OrdinalIgnoreCase)
+                : _showOfflineFriends || r.Order != 3)
             .OrderBy(r => r.Order)
             .ThenBy(r => r.Title, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -69,13 +81,16 @@ public partial class MainWindow : Window
         FriendsList.ItemsSource = shown;
         TranslateList(FriendsList);
         FriendsCount.Text = Loc.T($"{online} online, {offline} offline");
+        FrInGame.Text = _friendRows.Count(r => r.Order == 0).ToString();
+        FrOnline.Text = _friendRows.Count(r => r.Order == 1 || r.Order == 2).ToString();
+        FrOffline.Text = offline.ToString();
         FriendsOfflineBtn.Content = Loc.T(_showOfflineFriends ? "Offline friends: shown" : "Offline friends: hidden");
 
         if (shown.Count == 0)
         {
-            FriendsEmpty.Text = _friendRows.Count == 0
-                ? "This account has no friends yet."
-                : "None of your friends are online right now.";
+            FriendsEmpty.Text = Loc.T(q.Length > 0 ? "No friends match your search."
+                : _friendRows.Count == 0 ? "This account has no friends yet."
+                : "None of your friends are online right now.");
             FriendsEmpty.Visibility = Visibility.Visible;
         }
         else
@@ -112,6 +127,7 @@ public partial class MainWindow : Window
             _friendRows = new();
             FriendsList.ItemsSource = null;
             FriendsCount.Text = Loc.T("");
+            FrInGame.Text = FrOnline.Text = FrOffline.Text = "0";
             FriendsEmpty.Text = Loc.T("Pick an account in the sidebar to see its friends.");
             FriendsEmpty.Visibility = Visibility.Visible;
             return;
@@ -163,6 +179,13 @@ public partial class MainWindow : Window
             FriendsRefreshBtn.IsEnabled = true;
             if (redo) _ = RefreshFriendsAsync(true);
         }
+    }
+
+    private void FriendsSearch_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        _friendQuery = FriendsSearchBox.Text.Trim();
+        FriendsSearchHintRow.Visibility = FriendsSearchBox.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (_friendRows.Count > 0) ShowFriends();
     }
 
     private void FriendsRefresh_Click(object sender, RoutedEventArgs e) => _ = RefreshFriendsAsync(true);

@@ -19,6 +19,22 @@ public partial class MainWindow : Window
 {
     // ---------- Library ----------
 
+    // Number of tile columns on the Library page. Follows the window width so the tiles always fill the row.
+    public static readonly DependencyProperty LibColumnsProperty =
+        DependencyProperty.Register(nameof(LibColumns), typeof(int), typeof(MainWindow), new PropertyMetadata(3));
+
+    public int LibColumns
+    {
+        get => (int)GetValue(LibColumnsProperty);
+        set => SetValue(LibColumnsProperty, value);
+    }
+
+    private void LibScroll_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var usable = e.NewSize.Width - 24;   // room for the scrollbar and padding
+        LibColumns = Math.Max(1, (int)(usable / 190));
+    }
+
     private void RefreshLibrary()
     {
         var fav = S.Favorites.Select(ToRow).ToList();
@@ -28,6 +44,8 @@ public partial class MainWindow : Window
         RecentList.ItemsSource = recent;
         TranslateList(FavList);
         TranslateList(RecentList);
+        FavCount.Text = fav.Count.ToString();
+        RecentCount.Text = recent.Count.ToString();
         UpdateLibraryStats();
         FavEmpty.Visibility = S.Favorites.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         RecentEmpty.Visibility = S.Recent.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -170,6 +188,14 @@ public partial class MainWindow : Window
 
     private void TryAutoLaunch()
     {
+        if (_directWebLaunchPending)
+        {
+            if (!_clientReady || _link == null || _linkUsed) return;
+            _directWebLaunchPending = false;
+            _ = LaunchDirectWebLinkAsync(_link);
+            return;
+        }
+
         if (!_autoLaunchPending || _link == null || !_clientReady || _linkUsed) return;
 
         if (DateTime.Now > _autoLaunchUntil || _link.PlaceId != _autoLaunchPlace)

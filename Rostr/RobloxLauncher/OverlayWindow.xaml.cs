@@ -19,6 +19,7 @@ public partial class OverlayWindow : Window
     private const int WS_EX_TOOLWINDOW = 0x80;
     private const int WS_EX_NOACTIVATE = 0x08000000;
     private const uint SWP_NOSIZE = 0x0001;
+    private const uint SWP_NOMOVE = 0x0002;
     private const uint SWP_NOACTIVATE = 0x0010;
     private static readonly IntPtr HWND_TOPMOST = new(-1);
 
@@ -69,6 +70,14 @@ public partial class OverlayWindow : Window
     }
 
     public void SetCorner(int corner) => _corner = corner;
+
+    /// <summary>Moves this box back above other topmost windows (the dim overlay appears over it otherwise).</summary>
+    public void BringToTop()
+    {
+        if (!IsVisible) return;
+        SetWindowPos(new WindowInteropHelper(this).Handle, HWND_TOPMOST, 0, 0, 0, 0,
+                     SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+    }
 
     private bool _hasAccount;
     private bool _showPing = true, _showUser = true, _anyField = true;

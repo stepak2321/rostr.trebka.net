@@ -266,6 +266,7 @@ public static class Updater
                 // Give roblox-player: links back to Roblox.
                 try { ProtocolHandler.Unregister(); }
                 catch (Exception ex) { Log.Warn("Unregister failed: " + ex.Message); }
+                ProtocolHandler.UnregisterShare();
 
                 // Remove the shortcuts, the startup entry and the installed copy, but only if Rostr was installed.
                 if (Shortcuts.HasInstalledCopy || Shortcuts.HasStartMenu || Shortcuts.HasDesktop)

@@ -1,5 +1,8 @@
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
 using RobloxLauncher.Core;
 
 namespace RobloxLauncher;
@@ -47,13 +50,18 @@ public sealed class UpdatePromptWindow : Window
 
         if (update.Notes.Trim().Length > 0)
         {
-            var notes = new TextBlock { Text = update.Notes.Trim(), TextWrapping = TextWrapping.Wrap, FontSize = 12.5 };
-            notes.SetResourceReference(TextBlock.ForegroundProperty, "ThText2");
-            panel.Children.Add(new ScrollViewer
+            var notesPanel = new StackPanel { Margin = new Thickness(0, 14, 0, 0) };
+            foreach (var block in ParseMarkdownBlocks(update.Notes.Trim()))
+                notesPanel.Children.Add(block);
+
+            var scroll = new ScrollViewer
             {
-                Content = notes, MaxHeight = 140, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                Margin = new Thickness(0, 14, 0, 0)
-            });
+                Content = notesPanel,
+                MaxHeight = 140,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Margin = new Thickness(0, 0, 0, 0)
+            };
+            panel.Children.Add(scroll);
         }
 
         var ask = new TextBlock
@@ -71,5 +79,82 @@ public sealed class UpdatePromptWindow : Window
         panel.Children.Add(buttons);
 
         Content = panel;
+    }
+
+    private static IEnumerable<TextBlock> ParseMarkdownBlocks(string markdown)
+    {
+        var lines = markdown.Replace("\r\n", "\n").Split('\n');
+        var blocks = new List<TextBlock>();
+
+        foreach (var rawLine in lines)
+        {
+            var line = rawLine.TrimEnd();
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            if (line.StartsWith("### ", StringComparison.Ordinal))
+            {
+                blocks.Add(CreateInlineTextBlock(line[4..].Trim(), 13, FontWeights.Bold, true));
+                continue;
+            }
+
+            if (line.StartsWith("## ", StringComparison.Ordinal))
+            {
+                blocks.Add(CreateInlineTextBlock(line[3..].Trim(), 14, FontWeights.Bold, true));
+                continue;
+            }
+
+            if (line.StartsWith("# ", StringComparison.Ordinal))
+            {
+                blocks.Add(CreateInlineTextBlock(line[2..].Trim(), 15, FontWeights.Bold, true));
+                continue;
+            }
+
+            if (line.StartsWith("- ", StringComparison.Ordinal) || line.StartsWith("* ", StringComparison.Ordinal))
+            {
+                blocks.Add(CreateInlineTextBlock("• " + line[2..].Trim(), 12.5, FontWeights.Normal, false));
+                continue;
+            }
+
+            blocks.Add(CreateInlineTextBlock(line.Trim(), 12.5, FontWeights.Normal, false));
+        }
+
+        return blocks;
+    }
+
+    private static TextBlock CreateInlineTextBlock(string text, double size, FontWeight weight, bool addSpacing)
+    {
+        var block = new TextBlock
+        {
+            TextWrapping = TextWrapping.Wrap,
+            FontSize = size,
+            FontWeight = weight,
+            Margin = addSpacing ? new Thickness(0, 0, 0, 2) : new Thickness(0, 0, 0, 0)
+        };
+        block.SetResourceReference(TextBlock.ForegroundProperty, "ThText2");
+
+        var tokenRegex = new Regex(@"(\*\*.*?\*\*|\*.*?\*|`.*?`)");
+        var lastIndex = 0;
+        foreach (Match match in tokenRegex.Matches(text))
+        {
+            if (match.Index > lastIndex)
+                block.Inlines.Add(new Run(text.Substring(lastIndex, match.Index - lastIndex)));
+
+            var token = match.Value;
+            if (token.StartsWith("**") && token.EndsWith("**"))
+                block.Inlines.Add(new Run(token[2..^2]) { FontWeight = FontWeights.Bold });
+            else if (token.StartsWith("*") && token.EndsWith("*"))
+                block.Inlines.Add(new Run(token[1..^1]) { FontStyle = FontStyles.Italic });
+            else if (token.StartsWith("`") && token.EndsWith("`"))
+                block.Inlines.Add(new Run(token[1..^1]) { FontFamily = new FontFamily("Consolas") });
+            else
+                block.Inlines.Add(new Run(token));
+
+            lastIndex = match.Index + match.Length;
+        }
+
+        if (lastIndex < text.Length)
+            block.Inlines.Add(new Run(text.Substring(lastIndex)));
+
+        return block;
     }
 }
